@@ -1,3 +1,98 @@
+// ==================== ANIMATED FAVICON ====================
+(() => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const size = 16;
+    canvas.width = size;
+    canvas.height = size;
+    
+    const animateFavicon = () => {
+        const duration = 4000; // 4 seconds total cycle
+        const animDuration = 2500; // animation takes 2.5s, rest is pause
+        const startTime = Date.now();
+        
+        const updateFrame = () => {
+            const elapsed = (Date.now() - startTime) % duration;
+            const progress = elapsed / animDuration;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, size, size);
+            
+            // Extend animation beyond visible area so dot smoothly exits/enters
+            const dotRadius = 1.5;
+            const startX = -dotRadius - 2;
+            const endX = size + dotRadius + 2;
+            const dotX = startX + (endX - startX) * progress;
+            
+            // Only show dot when animation is active (progress < 1)
+            const showDot = progress <= 1;
+            
+            if (showDot) {
+                const centerY = size / 2;
+                const gapSize = dotRadius + 2;
+                
+                // Draw horizontal line in segments (skip area around dot)
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 1;
+                ctx.lineCap = 'round';
+                
+                // Left segment
+                const leftEnd = Math.min(dotX - gapSize, size - 2);
+                if (leftEnd > 2) {
+                    ctx.beginPath();
+                    ctx.moveTo(2, centerY);
+                    ctx.lineTo(leftEnd, centerY);
+                    ctx.stroke();
+                }
+                
+                // Right segment
+                const rightStart = Math.max(dotX + gapSize, 2);
+                if (rightStart < size - 2) {
+                    ctx.beginPath();
+                    ctx.moveTo(rightStart, centerY);
+                    ctx.lineTo(size - 2, centerY);
+                    ctx.stroke();
+                }
+                
+                // Draw moving dot
+                ctx.fillStyle = '#FFFFFF';
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(dotX, centerY, dotRadius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+            } else {
+                // Just draw the line when dot is hidden
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 1;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(2, size / 2);
+                ctx.lineTo(size - 2, size / 2);
+                ctx.stroke();
+            }
+            
+            // Update favicon
+            const link = document.getElementById('favicon') || document.querySelector('link[rel="icon"]');
+            if (link) {
+                link.href = canvas.toDataURL('image/png');
+            }
+            
+            requestAnimationFrame(updateFrame);
+        };
+        
+        updateFrame();
+    };
+    
+    // Start animation when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', animateFavicon);
+    } else {
+        animateFavicon();
+    }
+})();
+
 // ==================== STATE & ELEMENTS ====================
 const state = {
     currentFile: null, fileContent: '', projectData: {}, isNewFile: false,
@@ -772,6 +867,40 @@ elements.downloadBtn.onclick = async (e) => {
     } else downloadFile();
 };
 
+elements.projectTitle.oninput = function() {
+    const uploadBtnText = document.getElementById('upload-btn-text');
+    const centerUploadText = document.getElementById('center-upload-text');
+    const centerUploadLabel = document.getElementById('center-upload-label');
+    const text = this.textContent.trim();
+    const hasUserContent = text && text !== 'Write name of new project';
+    
+    if (uploadBtnText) {
+        uploadBtnText.textContent = hasUserContent ? 'Upload' : 'Create';
+    }
+    if (centerUploadText) {
+        centerUploadText.textContent = hasUserContent ? 'Create Project' : 'Upload Project';
+    }
+    // Toggle between file upload and direct creation
+    if (centerUploadLabel) {
+        if (hasUserContent) {
+            centerUploadLabel.setAttribute('for', '');
+            centerUploadLabel.style.cursor = 'pointer';
+        } else {
+            centerUploadLabel.setAttribute('for', 'file-upload');
+        }
+    }
+};
+
+// Handle center upload button click for project creation
+document.getElementById('center-upload-label')?.addEventListener('click', function(e) {
+    const projectName = elements.projectTitle.textContent.trim();
+    if (projectName && projectName !== 'Write name of new project' && !state.hasProject) {
+        e.preventDefault();
+        state.projectName = projectName;
+        createNewProject();
+    }
+});
+
 elements.projectTitle.onblur = function() {
     const t = this.textContent.trim();
     if (t && t !== 'Write name of new project') { state.projectName = t; if (!state.hasProject) createNewProject(); }
@@ -828,6 +957,15 @@ const hideLC = () => lc.classList.remove('show');
 lc.querySelector('.close').onclick = document.getElementById('leave-stay-btn').onclick = hideLC;
 document.getElementById('leave-download-btn').onclick = () => { downloadFile(); hideLC(); };
 document.getElementById('leave-anyway-btn').onclick = () => { hideLC(); location.reload(); };
+
+// Help Modal
+const helpModal = document.getElementById('help-modal');
+const helpBtn = document.getElementById('help-btn');
+const showHelpModal = () => helpModal.classList.add('show');
+const hideHelpModal = () => helpModal.classList.remove('show');
+helpBtn.onclick = showHelpModal;
+helpModal.querySelector('.close').onclick = hideHelpModal;
+window.addEventListener('click', (e) => { if (e.target === helpModal) hideHelpModal(); });
 
 window.onbeforeunload = (e) => { if (state.hasProject) { e.preventDefault(); e.returnValue = ''; } };
 document.onkeydown = (e) => {

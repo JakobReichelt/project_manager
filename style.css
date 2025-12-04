@@ -971,3 +971,68 @@ header h1:empty:before {
     border-radius: 4px;
 }
 
+/* Help Button */
+.help-btn {
+    background: transparent;
+    color: #666666;
+    border: none;
+    font-size: 16px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    padding: 8px 12px;
+}
+
+.help-btn:hover {
+    color: #000000;
+}
+
+/* Help Modal */
+.help-modal-content {
+    max-width: 700px;
+}
+
+.help-modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.help-section {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.help-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.help-section h3 {
+    font-size: 1.3em;
+    font-weight: 400;
+    margin-bottom: 12px;
+    color: #000000;
+}
+
+.help-section p {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #333333;
+    margin-bottom: 10px;
+}
+
+.help-section p:last-child {
+    margin-bottom: 0;
+}
+
+.help-section strong {
+    font-weight: 600;
+    color: #000000;
+}
+
