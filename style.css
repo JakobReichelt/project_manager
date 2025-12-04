@@ -4,30 +4,134 @@
     box-sizing: border-box;
 }
 
+:root {
+    --bg: #ffffff;
+    --panel: #ffffff;
+    --panel-alt: #ffffff;
+    --section-content-bg: #ffffff;
+    --text: #000000;
+    --muted: #666666;
+    --muted-2: #999999;
+    --border: #000000;
+    --hover: #e3f2fd;
+    --focus: #e8f4fd;
+    --button-bg: #ffffff;
+    --button-text: #000000;
+    --button-hover: #e3f2fd;
+    --primary-bg: #000000;
+    --primary-text: #ffffff;
+    --primary-hover: #333333;
+    --inverse: #ffffff;
+    --inverse-strong: #333333;
+    --note-bg: #ffffff;
+    --note-hover: #e8f4fd;
+    --modal-overlay: rgba(0, 0, 0, 0.3);
+    --timeline-line: #000000;
+    --timeline-dot: #000000;
+    --timeline-dot-stroke: #ffffff;
+    --timeline-star-fill: #ffffff;
+    --timeline-star-stroke: #000000;
+    --tooltip-bg: #ffffff;
+    --tooltip-text: #000000;
+    --confirm-shadow: rgba(0, 0, 0, 0.15);
+    --help-muted: #666666;
+    --help-hover: #000000;
+    --help-divider: #e0e0e0;
+    --note-placeholder-bg: #f0f0f0;
+    --note-placeholder-border: #cccccc;
+    --wave-stroke: #000000;
+    --timer-text: #000000;
+    --note-text: #000000;
+    --color-picker-bg: #ffffff;
+    --color-picker-border: #000000;
+    --timeline-label-bg: #ffffff;
+    --timeline-label-hover-bg: #e3f2fd;
+    --timeline-label-hover-text: #000000;
+    --work-indicator-fill: #22c55e;
+}
+
+body.dark-mode {
+    --bg: #0f1115;
+    --panel: #151821;
+    --panel-alt: #1c1f2a;
+    --section-content-bg: #181c27;
+    --text: #f3f5f7;
+    --muted: #a7afc5;
+    --muted-2: #8d95ab;
+    --border: #2e3446;
+    --hover: #1f2431;
+    --focus: #252c3a;
+    --button-bg: #1d2330;
+    --button-text: #f3f5f7;
+    --button-hover: #2a3242;
+    --primary-bg: #f3f5f7;
+    --primary-text: #0f1115;
+    --primary-hover: #d7dce5;
+    --inverse: #0f1115;
+    --inverse-strong: #d7dce5;
+    --note-bg: #1a1d26;
+    --note-hover: #1f2533;
+    --modal-overlay: rgba(0, 0, 0, 0.65);
+    --timeline-line: #d7dce5;
+    --timeline-dot: #f3f5f7;
+    --timeline-dot-stroke: #0f1115;
+    --timeline-star-fill: #1d2330;
+    --timeline-star-stroke: #f3f5f7;
+    --tooltip-bg: #1c1f2a;
+    --tooltip-text: #f3f5f7;
+    --confirm-shadow: rgba(0, 0, 0, 0.55);
+    --help-muted: #a7afc5;
+    --help-hover: #f3f5f7;
+    --help-divider: #2e3446;
+    --note-placeholder-bg: #1f2533;
+    --note-placeholder-border: #2e3446;
+    --wave-stroke: #f3f5f7;
+    --timer-text: #f3f5f7;
+    --note-text: #f3f5f7;
+    --color-picker-bg: #1d2330;
+    --color-picker-border: #2e3446;
+    --timeline-label-bg: #1d2330;
+    --timeline-label-hover-bg: #2a3242;
+    --timeline-label-hover-text: #f3f5f7;
+    --work-indicator-fill: #22c55e;
+    color-scheme: dark;
+}
+
 body {
     font-family: 'Georgia', 'Times New Roman', serif;
-    background: #ffffff;
+    background: var(--bg);
+    color: var(--text);
     min-height: 100vh;
     padding: 20px;
+    transition: background 0.25s ease, color 0.25s ease;
+}
+
+body.no-theme-transition,
+body.no-theme-transition *,
+body.no-theme-transition *::before,
+body.no-theme-transition *::after {
+    transition: none !important;
 }
 
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    background: white;
-    border: 1px solid #000000;
+    background: var(--panel);
+    border: 1px solid var(--border);
     overflow: hidden;
+    transition: background 0.25s ease, border-color 0.25s ease;
 }
 
 header {
-    background: #ffffff;
-    color: #000000;
+    background: var(--panel);
+    color: var(--text);
     padding: 30px;
-    border-bottom: 1px solid #000000;
+    border-bottom: 1px solid var(--border);
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 20px;
+    transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
 }
 
 .title-wrapper {
@@ -49,22 +153,22 @@ header h1 {
 
 .project-time-display {
     font-size: 0.85em;
-    color: #666666;
+    color: var(--muted);
     font-weight: 400;
     white-space: nowrap;
 }
 
 header h1:hover {
-    background: #e3f2fd;
+    background: var(--hover);
 }
 
 header h1:focus {
-    background: #e8f4fd;
+    background: var(--focus);
 }
 
 header h1:empty:before {
     content: attr(data-placeholder);
-    color: #999999;
+    color: var(--muted-2);
     font-style: italic;
 }
 
@@ -84,15 +188,33 @@ header h1:empty:before {
     white-space: nowrap;
 }
 
+.theme-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 44px;
+    border: 1px solid var(--border);
+    background: var(--button-bg);
+    color: var(--button-text);
+    border-radius: 6px;
+    font-size: 18px;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+    background: var(--button-hover);
+}
+
 .upload-btn {
-    background: #ffffff;
-    color: #000000;
-    border: 1px solid #000000;
+    background: var(--button-bg);
+    color: var(--button-text);
+    border: 1px solid var(--border);
     display: inline-block;
 }
 
 .upload-btn:hover {
-    background: #e3f2fd;
+    background: var(--button-hover);
 }
 
 .upload-btn input[type="file"] {
@@ -114,24 +236,24 @@ header h1:empty:before {
     cursor: pointer;
     transition: background 0.2s ease;
     font-family: 'Georgia', 'Times New Roman', serif;
-    background: #ffffff;
-    color: #000000;
-    border: 1px solid #000000;
+    background: var(--button-bg);
+    color: var(--button-text);
+    border: 1px solid var(--border);
     display: inline-block;
 }
 
 .center-upload-btn:hover {
-    background: #e3f2fd;
+    background: var(--button-hover);
 }
 
 .download-btn {
-    background: #000000;
-    color: #ffffff;
-    border: 1px solid #000000;
+    background: var(--primary-bg);
+    color: var(--primary-text);
+    border: 1px solid var(--border);
 }
 
 .download-btn:hover {
-    background: #333333;
+    background: var(--primary-hover);
 }
 
 .project-content {
@@ -141,13 +263,13 @@ header h1:empty:before {
 /* Level 2 Container (##) */
 .section-level-2 {
     margin-bottom: 30px;
-    border: 1px solid #000000;
+    border: 1px solid var(--border);
     overflow: hidden;
 }
 
 .section-header-2 {
-    background: #ffffff;
-    color: #000000;
+    background: var(--panel);
+    color: var(--text);
     padding: 20px;
     padding-left: 30px;
     cursor: pointer;
@@ -155,8 +277,8 @@ header h1:empty:before {
     justify-content: space-between;
     align-items: center;
     user-select: none;
-    transition: background 0.2s ease;
-    border-bottom: 1px solid #000000;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    border-bottom: 1px solid var(--border);
     position: relative;
 }
 
@@ -179,10 +301,10 @@ header h1:empty:before {
 .color-picker-popup {
     position: fixed;
     z-index: 10000;
-    background: #ffffff;
-    border: 1px solid #000000;
+    background: var(--color-picker-bg);
+    border: 1px solid var(--color-picker-border);
     padding: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px var(--confirm-shadow);
 }
 
 .color-picker-grid {
@@ -195,7 +317,7 @@ header h1:empty:before {
 .color-picker-cell {
     width: 28px;
     height: 28px;
-    border: 1px solid #000000;
+    border: 1px solid var(--border);
     cursor: pointer;
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
@@ -207,12 +329,12 @@ header h1:empty:before {
 }
 
 .color-picker-cell.selected {
-    outline: 2px solid #000000;
+    outline: 2px solid var(--border);
     outline-offset: 2px;
 }
 
 .section-header-2:hover {
-    background: #e3f2fd;
+    background: var(--hover);
 }
 
 .section-header-2 h2 {
@@ -223,7 +345,7 @@ header h1:empty:before {
 .section-time-display {
     font-size: 0.9em;
     font-weight: 400;
-    color: #666666;
+    color: var(--muted);
     font-family: 'Georgia', 'Times New Roman', serif;
 }
 
@@ -238,7 +360,7 @@ header h1:empty:before {
 
 .section-content-2 {
     padding: 20px;
-    background: #ffffff;
+    background: var(--section-content-bg);
 }
 
 .section-content-2.collapsed {
@@ -248,14 +370,14 @@ header h1:empty:before {
 /* Level 3 Container (###) */
 .section-level-3 {
     margin-bottom: 20px;
-    border: 1px solid #000000;
+    border: 1px solid var(--border);
     overflow: hidden;
-    background: white;
+    background: var(--panel-alt);
 }
 
 .section-header-3 {
-    background: #ffffff;
-    color: #000000;
+    background: var(--panel-alt);
+    color: var(--text);
     padding: 15px;
     padding-left: 26px;
     cursor: pointer;
@@ -263,8 +385,8 @@ header h1:empty:before {
     justify-content: space-between;
     align-items: center;
     user-select: none;
-    transition: background 0.2s ease;
-    border-bottom: 1px solid #000000;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    border-bottom: 1px solid var(--border);
     position: relative;
 }
 
@@ -273,7 +395,7 @@ header h1:empty:before {
 }
 
 .section-header-3:hover {
-    background: #e3f2fd;
+    background: var(--hover);
 }
 
 .section-header-3 h3 {
@@ -284,13 +406,13 @@ header h1:empty:before {
 .subsection-time-display {
     font-size: 0.85em;
     font-weight: 400;
-    color: #666666;
+    color: var(--muted);
     font-family: 'Georgia', 'Times New Roman', serif;
 }
 
 .section-content-3 {
     padding: 20px;
-    background: white;
+    background: var(--section-content-bg);
 }
 
 .section-content-3.collapsed {
@@ -299,8 +421,8 @@ header h1:empty:before {
 
 /* Timer Section */
 .timer-section {
-    background: #ffffff;
-    border: 1px solid #000000;
+    background: var(--panel-alt);
+    border: 1px solid var(--border);
     padding: 15px;
     margin-bottom: 15px;
     position: relative;
@@ -337,7 +459,7 @@ header h1:empty:before {
 .timer-display {
     font-size: 2em;
     font-weight: 400;
-    color: #000000;
+    color: var(--timer-text);
     text-align: center;
     font-family: 'Georgia', 'Times New Roman', serif;
 }
@@ -345,7 +467,7 @@ header h1:empty:before {
 .total-time-display {
     font-size: 0.9em;
     font-weight: 400;
-    color: #666666;
+    color: var(--muted);
     font-family: 'Georgia', 'Times New Roman', serif;
 }
 
@@ -357,9 +479,9 @@ header h1:empty:before {
 
 .timer-btn {
     padding: 8px 20px;
-    border: 1px solid #000000;
-    background: #ffffff;
-    color: #000000;
+    border: 1px solid var(--border);
+    background: var(--button-bg);
+    color: var(--button-text);
     cursor: pointer;
     font-weight: 400;
     transition: background 0.2s ease;
@@ -368,7 +490,7 @@ header h1:empty:before {
 }
 
 .timer-btn:hover {
-    background: #e3f2fd;
+    background: var(--button-hover);
 }
 
 .timer-btn:disabled {
@@ -385,24 +507,24 @@ header h1:empty:before {
     font-size: 1.1em;
     font-weight: 400;
     margin-bottom: 10px;
-    color: #000000;
+    color: var(--text);
 }
 
 .notes-input {
     width: 100%;
     min-height: 60px;
     padding: 12px;
-    border: 1px solid #000000;
+    border: 1px solid var(--border);
     font-family: 'Georgia', 'Times New Roman', serif;
     font-size: 14px;
     resize: vertical;
     transition: background 0.2s ease;
-    background: #ffffff;
+    background: var(--note-bg);
 }
 
 .notes-input:focus {
     outline: none;
-    background: #e8f4fd;
+    background: var(--note-hover);
 }
 
 .notes-list {
@@ -412,7 +534,7 @@ header h1:empty:before {
 .notes-empty {
     padding: 15px;
     text-align: center;
-    color: #999999;
+    color: var(--muted-2);
     font-style: italic;
     font-size: 14px;
 }
@@ -424,14 +546,14 @@ header h1:empty:before {
     gap: 10px;
     padding: 12px;
     margin-bottom: 8px;
-    border: 1px solid #000000;
-    background: #ffffff;
+    border: 1px solid var(--border);
+    background: var(--note-bg);
     cursor: move;
     transition: background 0.2s ease;
 }
 
 .note-item:hover {
-    background: #e8f4fd;
+    background: var(--note-hover);
 }
 
 .note-item.dragging {
@@ -440,7 +562,7 @@ header h1:empty:before {
 
 .note-content {
     flex: 1;
-    color: #000000;
+    color: var(--note-text);
     font-size: 14px;
     line-height: 1.6;
     white-space: pre-wrap;
@@ -448,9 +570,9 @@ header h1:empty:before {
 
 .note-delete-btn {
     padding: 2px 8px;
-    background: #ffffff;
-    color: #000000;
-    border: 1px solid #000000;
+    background: var(--button-bg);
+    color: var(--button-text);
+    border: 1px solid var(--border);
     cursor: pointer;
     font-size: 18px;
     line-height: 1;
@@ -460,8 +582,8 @@ header h1:empty:before {
 }
 
 .note-delete-btn:hover {
-    background: #000000;
-    color: #ffffff;
+    background: var(--primary-bg);
+    color: var(--primary-text);
 }
 
 /* Section Controls (Edit, Delete, Move) */
@@ -489,9 +611,9 @@ header h1:empty:before {
     width: 28px;
     height: 28px;
     padding: 0;
-    background: #ffffff;
-    color: #000000;
-    border: 1px solid #000000;
+    background: var(--button-bg);
+    color: var(--button-text);
+    border: 1px solid var(--border);
     cursor: pointer;
     font-size: 16px;
     line-height: 1;
@@ -503,7 +625,7 @@ header h1:empty:before {
 }
 
 .section-ctrl-btn:hover {
-    background: #e3f2fd;
+    background: var(--button-hover);
 }
 
 /* Editable section title */
@@ -517,18 +639,18 @@ header h1:empty:before {
 }
 
 .section-title-editable:hover {
-    background: #e3f2fd;
+    background: var(--hover);
 }
 
 .section-title-editable:focus {
-    background: #e8f4fd;
+    background: var(--focus);
 }
 
 /* Add Section Controls */
 .add-section-controls {
     padding: 20px 30px;
-    background: #ffffff;
-    border-top: 1px solid #000000;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
     display: flex;
     gap: 15px;
     justify-content: center;
@@ -536,9 +658,9 @@ header h1:empty:before {
 
 .add-section-btn {
     padding: 12px 30px;
-    background: #ffffff;
-    color: #000000;
-    border: 1px solid #000000;
+    background: var(--button-bg);
+    color: var(--button-text);
+    border: 1px solid var(--border);
     cursor: pointer;
     transition: background 0.2s ease;
     font-weight: 400;
@@ -547,15 +669,15 @@ header h1:empty:before {
 }
 
 .add-section-btn:hover {
-    background: #e3f2fd;
+    background: var(--button-hover);
 }
 
 /* Add Subsection Button inside sections */
 .add-subsection-btn {
     padding: 12px 30px;
-    background: #ffffff;
-    color: #000000;
-    border: 1px solid #000000;
+    background: var(--button-bg);
+    color: var(--button-text);
+    border: 1px solid var(--border);
     cursor: pointer;
     transition: background 0.2s ease;
     font-weight: 400;
@@ -565,7 +687,7 @@ header h1:empty:before {
 }
 
 .add-subsection-btn:hover {
-    background: #e3f2fd;
+    background: var(--button-hover);
 }
 
 /* Modal */
@@ -577,7 +699,7 @@ header h1:empty:before {
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: var(--modal-overlay);
     animation: fadeIn 0.3s ease;
 }
 
@@ -593,9 +715,9 @@ header h1:empty:before {
 }
 
 .modal-content {
-    background-color: white;
+    background-color: var(--panel-alt);
     padding: 30px;
-    border: 1px solid #000000;
+    border: 1px solid var(--border);
     width: 90%;
     max-width: 500px;
     animation: slideIn 0.3s ease;
@@ -613,7 +735,7 @@ header h1:empty:before {
 }
 
 .close {
-    color: #666666;
+    color: var(--help-muted);
     float: right;
     font-size: 28px;
     font-weight: 400;
@@ -622,12 +744,12 @@ header h1:empty:before {
 }
 
 .close:hover {
-    color: #000000;
+    color: var(--help-hover);
 }
 
 .modal h2 {
     margin-bottom: 20px;
-    color: #000000;
+    color: var(--text);
     font-weight: 400;
 }
 
@@ -638,14 +760,14 @@ header h1:empty:before {
 .modal-body label {
     display: block;
     margin-bottom: 8px;
-    color: #000000;
+    color: var(--text);
     font-weight: 400;
 }
 
 .section-title-input {
     width: 100%;
     padding: 12px;
-    border: 1px solid #000000;
+    border: 1px solid var(--border);
     font-family: 'Georgia', 'Times New Roman', serif;
     font-size: 14px;
     margin-bottom: 15px;
@@ -654,23 +776,23 @@ header h1:empty:before {
 
 .section-title-input:focus {
     outline: none;
-    background: #e8f4fd;
+    background: var(--focus);
 }
 
 .parent-section-select {
     width: 100%;
     padding: 12px;
-    border: 1px solid #000000;
+    border: 1px solid var(--border);
     font-family: 'Georgia', 'Times New Roman', serif;
     font-size: 14px;
     margin-bottom: 15px;
     transition: background 0.2s ease;
-    background: white;
+    background: var(--panel);
 }
 
 .parent-section-select:focus {
     outline: none;
-    background: #e8f4fd;
+    background: var(--focus);
 }
 
 .modal-buttons {
@@ -682,9 +804,9 @@ header h1:empty:before {
 .modal-add-btn {
     flex: 1;
     padding: 12px 24px;
-    background: #000000;
-    color: #ffffff;
-    border: 1px solid #000000;
+    background: var(--primary-bg);
+    color: var(--primary-text);
+    border: 1px solid var(--border);
     cursor: pointer;
     font-weight: 400;
     transition: background 0.2s ease;
@@ -692,15 +814,15 @@ header h1:empty:before {
 }
 
 .modal-add-btn:hover {
-    background: #333333;
+    background: var(--primary-hover);
 }
 
 .modal-cancel-btn {
     flex: 1;
     padding: 12px 24px;
-    background: #ffffff;
-    color: #000000;
-    border: 1px solid #000000;
+    background: var(--button-bg);
+    color: var(--button-text);
+    border: 1px solid var(--border);
     cursor: pointer;
     font-weight: 400;
     transition: background 0.2s ease;
@@ -708,12 +830,12 @@ header h1:empty:before {
 }
 
 .modal-cancel-btn:hover {
-    background: #e3f2fd;
+    background: var(--button-hover);
 }
 
 .leave-confirm-message {
     font-size: 16px;
-    color: #000000;
+    color: var(--text);
     line-height: 1.6;
     margin-bottom: 10px;
 }
@@ -723,7 +845,7 @@ header h1:empty:before {
     padding: 10px;
     margin-top: 15px;
     background: transparent;
-    color: #666666;
+    color: var(--muted);
     border: none;
     cursor: pointer;
     font-family: 'Georgia', 'Times New Roman', serif;
@@ -733,15 +855,15 @@ header h1:empty:before {
 }
 
 .leave-anyway-btn:hover {
-    color: #000000;
+    color: var(--text);
 }
 
 /* Timeline Section */
 .timeline-section {
-    border-top: 1px solid #000000;
-    border-bottom: 1px solid #000000;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
     padding: 20px 30px;
-    background: #ffffff;
+    background: var(--panel);
     overflow: visible;
 }
 
@@ -751,6 +873,16 @@ header h1:empty:before {
     pointer-events: none;
     width: 0;
     height: 0;
+}
+
+#timeline-start-date {
+    left: 120px;
+    top: 10px;
+}
+
+#timeline-end-date {
+    right: 0;
+    top: 10px;
 }
 
 .timeline-container {
@@ -774,17 +906,17 @@ header h1:empty:before {
     border-radius: 3px;
     transition: background 0.2s ease, color 0.2s ease;
     font-size: 0.85em;
-    color: #666666;
+    color: var(--muted);
     white-space: nowrap;
     flex-shrink: 0;
     position: relative;
     z-index: 1;
-    background: #ffffff;
+    background: var(--timeline-label-bg);
 }
 
 .timeline-label:hover {
-    background: #e3f2fd;
-    color: #000000;
+    background: var(--timeline-label-hover-bg);
+    color: var(--timeline-label-hover-text);
 }
 
 .timeline-svg {
@@ -796,13 +928,13 @@ header h1:empty:before {
 }
 
 .timeline-line {
-    stroke: #000000;
+    stroke: var(--timeline-line);
     stroke-width: 2;
     cursor: pointer;
 }
 
 .timeline-line:hover {
-    stroke: #333333;
+    stroke: var(--primary-hover);
     stroke-width: 3;
 }
 
@@ -812,24 +944,24 @@ header h1:empty:before {
 }
 
 .timeline-current-dot {
-    fill: #000000;
-    stroke: #ffffff;
+    fill: var(--timeline-dot);
+    stroke: var(--timeline-dot-stroke);
     stroke-width: 2;
 }
 
 .timeline-event-star {
-    fill: #ffffff;
-    stroke: #000000;
+    fill: var(--timeline-star-fill);
+    stroke: var(--timeline-star-stroke);
     stroke-width: 1.5;
     cursor: pointer;
 }
 
 .timeline-tooltip {
     position: absolute;
-    background: #ffffff;
-    color: #000000;
+    background: var(--tooltip-bg);
+    color: var(--tooltip-text);
     padding: 8px 12px;
-    border: 1px solid #000000;
+    border: 1px solid var(--border);
     font-size: 0.85em;
     white-space: pre-wrap;
     max-width: 250px;
@@ -847,7 +979,7 @@ header h1:empty:before {
     height: 0;
     border-left: 6px solid transparent;
     border-right: 6px solid transparent;
-    border-top: 6px solid #000000;
+    border-top: 6px solid var(--border);
 }
 
 .timeline-tooltip::before {
@@ -860,39 +992,39 @@ header h1:empty:before {
     height: 0;
     border-left: 5px solid transparent;
     border-right: 5px solid transparent;
-    border-top: 5px solid #ffffff;
+    border-top: 5px solid var(--tooltip-bg);
     z-index: 1;
 }
 
 .event-date-input {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid #000000;
+    border: 1px solid var(--border);
     font-family: 'Georgia', 'Times New Roman', serif;
     font-size: 14px;
-    background: #ffffff;
+    background: var(--panel);
     margin-bottom: 15px;
 }
 
 .event-date-input:focus {
     outline: none;
-    background: #e8f4fd;
+    background: var(--focus);
 }
 
 .event-note-input {
     width: 100%;
     min-height: 100px;
     padding: 12px;
-    border: 1px solid #000000;
+    border: 1px solid var(--border);
     font-family: 'Georgia', 'Times New Roman', serif;
     font-size: 14px;
     resize: vertical;
-    background: #ffffff;
+    background: var(--panel);
 }
 
 .event-note-input:focus {
     outline: none;
-    background: #e8f4fd;
+    background: var(--focus);
 }
 
 /* Timeline Work Indicator Lines */
@@ -908,18 +1040,18 @@ header h1:empty:before {
 .confirm-popup {
     position: fixed;
     z-index: 10000;
-    background: #ffffff;
-    border: 1px solid #000000;
+    background: var(--panel-alt);
+    border: 1px solid var(--border);
     padding: 20px;
     min-width: 200px;
     max-width: 350px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px var(--confirm-shadow);
     font-family: 'Georgia', 'Times New Roman', serif;
 }
 
 .confirm-popup-message {
     font-size: 14px;
-    color: #000000;
+    color: var(--text);
     margin-bottom: 15px;
     line-height: 1.5;
 }
@@ -932,9 +1064,9 @@ header h1:empty:before {
 
 .confirm-popup-btn {
     padding: 8px 16px;
-    border: 1px solid #000000;
-    background: #ffffff;
-    color: #000000;
+    border: 1px solid var(--border);
+    background: var(--button-bg);
+    color: var(--button-text);
     cursor: pointer;
     font-family: 'Georgia', 'Times New Roman', serif;
     font-size: 13px;
@@ -942,22 +1074,22 @@ header h1:empty:before {
 }
 
 .confirm-popup-btn:hover {
-    background: #e3f2fd;
+    background: var(--button-hover);
 }
 
 .confirm-popup-btn:focus {
     outline: none;
-    background: #e3f2fd;
+    background: var(--button-hover);
 }
 
 .confirm-popup-btn.confirm-yes {
-    background: #000000;
-    color: #ffffff;
+    background: var(--primary-bg);
+    color: var(--primary-text);
 }
 
 .confirm-popup-btn.confirm-yes:hover,
 .confirm-popup-btn.confirm-yes:focus {
-    background: #333333;
+    background: var(--primary-hover);
 }
 
 .note-item.dragging-hidden {
@@ -965,8 +1097,8 @@ header h1:empty:before {
 }
 
 .note-placeholder {
-    background: #f0f0f0;
-    border: 2px dashed #ccc;
+    background: var(--note-placeholder-bg);
+    border: 2px dashed var(--note-placeholder-border);
     margin-bottom: 8px;
     border-radius: 4px;
 }
@@ -974,7 +1106,7 @@ header h1:empty:before {
 /* Help Button */
 .help-btn {
     background: transparent;
-    color: #666666;
+    color: var(--help-muted);
     border: none;
     font-size: 16px;
     font-weight: 400;
@@ -988,7 +1120,7 @@ header h1:empty:before {
 }
 
 .help-btn:hover {
-    color: #000000;
+    color: var(--help-hover);
 }
 
 /* Help Modal */
@@ -1004,7 +1136,7 @@ header h1:empty:before {
 .help-section {
     margin-bottom: 24px;
     padding-bottom: 20px;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--help-divider);
 }
 
 .help-section:last-child {
@@ -1017,13 +1149,13 @@ header h1:empty:before {
     font-size: 1.3em;
     font-weight: 400;
     margin-bottom: 12px;
-    color: #000000;
+    color: var(--text);
 }
 
 .help-section p {
     font-size: 14px;
     line-height: 1.6;
-    color: #333333;
+    color: var(--muted);
     margin-bottom: 10px;
 }
 
@@ -1033,6 +1165,6 @@ header h1:empty:before {
 
 .help-section strong {
     font-weight: 600;
-    color: #000000;
+    color: var(--text);
 }
 

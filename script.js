@@ -110,7 +110,7 @@ const elements = {
     timelineStartDate: el('timeline-start-date'), timelineEndDate: el('timeline-end-date'), timelineSvg: el('timeline-svg'),
     timelineEventModal: el('timeline-event-modal'), eventNoteInput: el('event-note'), eventDateInput: el('event-date'),
     timelineLabelStart: el('timeline-label-start'), timelineLabelEnd: el('timeline-label-end'),
-    leaveConfirmModal: el('leave-confirm-modal')
+    leaveConfirmModal: el('leave-confirm-modal'), themeToggleBtn: el('theme-toggle-btn')
 };
 
 // ==================== UTILITY ====================
@@ -138,7 +138,7 @@ const formatTime = (s) => [Math.floor(s / 3600), Math.floor((s % 3600) / 60), s 
 const formatDateLabel = (d) => new Date(d).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' });
 const getToday = () => new Date().toISOString().split('T')[0];
 
-const sectionColorPalette = ['#4A90D9', '#D94A4A', '#4AD97A', '#D9A64A', '#9B4AD9', '#4AD9D9', '#D94A9B', '#7AD94A', '#D9784A', '#4A6ED9'];
+const sectionColorPalette = ['#7fbc7f', '#7f7fcd', '#d980a0', '#ff9d7f', '#ffff99', '#99ff99', '#99ffff', '#ff99ff', '#a3c1f0', '#ffe4c4'];
 
 const getUnusedColor = () => {
     const used = Object.values(state.projectData).map(s => s.color).filter(Boolean);
@@ -185,6 +185,29 @@ const generateSimilarColor = (base, idx) => {
     const v = generateColorVariants(base);
     return v[idx % v.length];
 };
+
+// ==================== THEME ====================
+const THEME_STORAGE_KEY = 'pm-theme';
+const THEME_ICONS = {
+    light: `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M4.22 4.22l1.77 1.77M18.01 17.99l1.77 1.79M2 12h2.5M19.5 12H22M4.22 19.78l1.77-1.79M18.01 6.01l1.77-1.79"/></svg>`,
+    dark: `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.5A9 9 0 1 1 11.5 3a7 7 0 0 0 9.5 9.5Z"/></svg>`
+};
+
+function applyTheme(mode = 'light') {
+    const isDark = mode === 'dark';
+    document.body.classList.toggle('dark-mode', isDark);
+    if (elements.themeToggleBtn) {
+        elements.themeToggleBtn.innerHTML = isDark ? THEME_ICONS.light : THEME_ICONS.dark;
+        elements.themeToggleBtn.title = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+        elements.themeToggleBtn.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+    }
+}
+
+function initTheme() {
+    const saved = localStorage.getItem(THEME_STORAGE_KEY);
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(saved || (prefersDark ? 'dark' : 'light'));
+}
 
 // ==================== COLOR PICKER ====================
 let activeColorPicker = null;
@@ -418,8 +441,15 @@ function createSection(level, title, parent = null) {
         const colors = isL2 ? sectionColorPalette : generateColorVariants(state.projectData[parent]?.color || sectionColorPalette[0]);
         const curColor = (isL2 ? state.projectData[title] : state.projectData[parent]?.[title])?.color || '';
         showColorPicker(rect.right + 5, rect.top, colors, curColor, (c) => {
-            if (isL2) { state.projectData[title].color = c; updateSubsectionColors(base.section, c); }
-            else { state.projectData[parent][title].color = c; }
+            if (isL2) { 
+                state.projectData[title].color = c; 
+                base.colorStripe.style.backgroundColor = c;
+                updateSubsectionColors(base.section, c); 
+            }
+            else { 
+                state.projectData[parent][title].color = c; 
+                base.colorStripe.style.backgroundColor = c;
+            }
             saveToFile();
         });
     };
@@ -845,6 +875,24 @@ function showTimeline() {
 }
 
 // ==================== INIT ====================
+initTheme();
+
+if (elements.themeToggleBtn) {
+    elements.themeToggleBtn.onclick = () => {
+        const next = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
+        document.body.classList.add('no-theme-transition');
+        localStorage.setItem(THEME_STORAGE_KEY, next);
+        applyTheme(next);
+        setTimeout(() => document.body.classList.remove('no-theme-transition'), 80);
+    };
+    if (window.matchMedia) {
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        mq.addEventListener('change', (e) => {
+            if (!localStorage.getItem(THEME_STORAGE_KEY)) applyTheme(e.matches ? 'dark' : 'light');
+        });
+    }
+}
+
 elements.fileUpload.onchange = async (e) => {
     const f = e.target.files[0]; if (!f) return;
     state.currentFile = f; state.fileContent = await f.text(); state.isNewFile = false; state.hasProject = true;
@@ -875,7 +923,7 @@ elements.projectTitle.oninput = function() {
     const hasUserContent = text && text !== 'Write name of new project';
     
     if (uploadBtnText) {
-        uploadBtnText.textContent = hasUserContent ? 'Upload' : 'Create';
+        uploadBtnText.textContent = 'Upload';
     }
     if (centerUploadText) {
         centerUploadText.textContent = hasUserContent ? 'Create Project' : 'Upload Project';
