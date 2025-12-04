@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Manager</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="title-wrapper">
+                <h1 id="project-title" contenteditable="true" spellcheck="false">Write name of new project</h1>
+                <span id="project-time-display" class="project-time-display"></span>
+            </div>
+            <div class="header-buttons">
+                <input type="file" id="file-upload" accept=".md,.markdown" style="display: none;" />
+                <label for="file-upload" id="header-upload-btn" class="header-btn upload-btn" style="display: none;">
+                    <span>Upload</span>
+                </label>
+                <button type="button" id="download-btn" class="header-btn download-btn" style="display: none;">Save As</button>
+            </div>
+        </header>
+
+        <!-- Timeline Section -->
+        <div id="timeline-section" class="timeline-section" style="display: none;">
+            <div id="timeline-container" class="timeline-container">
+                <input type="date" id="timeline-start-date" class="date-input-hidden">
+                <input type="date" id="timeline-end-date" class="date-input-hidden">
+                <span class="timeline-label timeline-label-start" id="timeline-label-start"></span>
+                <svg id="timeline-svg" class="timeline-svg" viewBox="0 0 1000 100" preserveAspectRatio="none">
+                    <rect class="timeline-hitbox" x="0" y="30" width="1000" height="40" />
+                    <line class="timeline-line" x1="0" y1="50" x2="1000" y2="50" />
+                    <ellipse class="timeline-current-dot" cx="0" cy="50" rx="8" ry="8" style="display: none;" />
+                </svg>
+                <span class="timeline-label timeline-label-end" id="timeline-label-end"></span>
+            </div>
+        </div>
+
+        <div id="project-content" class="project-content"></div>
+
+        <div id="center-upload-container" class="center-upload-container">
+            <label for="file-upload" class="center-upload-btn">
+                <span>Upload Project</span>
+            </label>
+        </div>
+
+        <div id="add-section-controls" class="add-section-controls" style="display: none;">
+            <button id="add-level2-btn" class="add-section-btn">+ Add Section (##)</button>
+        </div>
+    </div>
+
+    <!-- Modal for adding timeline events -->
+    <div id="timeline-event-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Add Timeline Event</h2>
+            <div class="modal-body">
+                <label for="event-date">Event Date:</label>
+                <input type="date" id="event-date" class="event-date-input">
+                <label for="event-note">Event Note:</label>
+                <textarea id="event-note" class="event-note-input" placeholder="Enter a short note about this event... (Ctrl+Enter to add)"></textarea>
+                <div class="modal-buttons">
+                    <button id="event-add-btn" class="modal-add-btn">Add Event</button>
+                    <button id="event-cancel-btn" class="modal-cancel-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for adding new sections -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modal-title">Add New Section</h2>
+            <div class="modal-body">
+                <label for="section-title">Section Title:</label>
+                <input type="text" id="section-title" class="section-title-input" placeholder="Enter section title... (Ctrl+Enter to add)">
+                <div id="parent-select-container" style="display: none;">
+                    <label for="parent-section">Parent Section:</label>
+                    <select id="parent-section" class="parent-section-select"></select>
+                </div>
+                <div class="modal-buttons">
+                    <button id="modal-add-btn" class="modal-add-btn">Add</button>
+                    <button id="modal-cancel-btn" class="modal-cancel-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for leave confirmation -->
+    <div id="leave-confirm-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Reminder</h2>
+            <div class="modal-body">
+                <p class="leave-confirm-message">Don't forget to download your Markdown file before leaving!</p>
+                <div class="modal-buttons">
+                    <button id="leave-download-btn" class="modal-add-btn">Download File</button>
+                    <button id="leave-stay-btn" class="modal-cancel-btn">Stay on Page</button>
+                </div>
+                <button id="leave-anyway-btn" class="leave-anyway-btn">Leave without saving</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
