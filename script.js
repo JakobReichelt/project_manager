@@ -189,8 +189,8 @@ const generateSimilarColor = (base, idx) => {
 // ==================== THEME ====================
 const THEME_STORAGE_KEY = 'pm-theme';
 const THEME_ICONS = {
-    light: `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M4.22 4.22l1.77 1.77M18.01 17.99l1.77 1.79M2 12h2.5M19.5 12H22M4.22 19.78l1.77-1.79M18.01 6.01l1.77-1.79"/></svg>`,
-    dark: `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.5A9 9 0 1 1 11.5 3a7 7 0 0 0 9.5 9.5Z"/></svg>`
+    light: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M4.22 4.22l1.77 1.77M18.01 17.99l1.77 1.79M2 12h2.5M19.5 12H22M4.22 19.78l1.77-1.79M18.01 6.01l1.77-1.79"/></svg>`,
+    dark: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.5A9 9 0 1 1 11.5 3a7 7 0 0 0 9.5 9.5Z"/></svg>`
 };
 
 function applyTheme(mode = 'light') {
@@ -210,13 +210,12 @@ function initTheme() {
 }
 
 // ==================== COLOR PICKER ====================
-let activeColorPicker = null;
 function showColorPicker(x, y, colors, current, onSelect) {
     closeColorPicker();
-    const popup = document.createElement('div');
-    popup.className = 'color-picker-popup';
-    const grid = document.createElement('div');
-    grid.className = 'color-picker-grid';
+    const popup = document.getElementById('color-picker-popup');
+    const grid = document.getElementById('color-picker-grid');
+    grid.innerHTML = '';
+    
     colors.forEach(c => {
         const cell = document.createElement('div');
         cell.className = 'color-picker-cell' + (c.toLowerCase() === current?.toLowerCase() ? ' selected' : '');
@@ -224,23 +223,24 @@ function showColorPicker(x, y, colors, current, onSelect) {
         cell.onclick = (e) => { e.stopPropagation(); onSelect(c); closeColorPicker(); };
         grid.appendChild(cell);
     });
-    popup.appendChild(grid);
-    document.body.appendChild(popup);
+    
+    popup.style.display = 'block';
     const rect = popup.getBoundingClientRect();
     popup.style.left = Math.max(10, Math.min(x, window.innerWidth - rect.width - 10)) + 'px';
     popup.style.top = Math.max(10, Math.min(y + 5, window.innerHeight - rect.height - 10)) + 'px';
-    activeColorPicker = popup;
+    
     setTimeout(() => document.addEventListener('click', handleColorPickerOutsideClick), 0);
 }
 
 function handleColorPickerOutsideClick(e) {
-    if (activeColorPicker && !activeColorPicker.contains(e.target)) closeColorPicker();
+    const popup = document.getElementById('color-picker-popup');
+    if (popup.style.display !== 'none' && !popup.contains(e.target)) closeColorPicker();
 }
 
 function closeColorPicker() {
-    if (activeColorPicker) {
-        activeColorPicker.remove();
-        activeColorPicker = null;
+    const popup = document.getElementById('color-picker-popup');
+    if (popup) {
+        popup.style.display = 'none';
         document.removeEventListener('click', handleColorPickerOutsideClick);
     }
 }
@@ -277,24 +277,33 @@ const updateProjectTimeDisplay = () => {
 
 function showConfirmPopup(msg, x, y) {
     return new Promise((resolve) => {
-        document.querySelector('.confirm-popup')?.remove();
-        const popup = document.createElement('div');
-        popup.className = 'confirm-popup';
-        popup.innerHTML = `<div class="confirm-popup-message">${msg}</div><div class="confirm-popup-buttons"><button class="confirm-popup-btn confirm-yes">Yes</button><button class="confirm-popup-btn confirm-no">No</button></div>`;
-        document.body.appendChild(popup);
+        const popup = document.getElementById('confirm-popup');
+        const msgEl = document.getElementById('confirm-popup-message');
+        const yesBtn = document.getElementById('confirm-yes-btn');
+        const noBtn = document.getElementById('confirm-no-btn');
+        
+        msgEl.textContent = msg;
+        popup.style.display = 'block';
+        
         const rect = popup.getBoundingClientRect();
         popup.style.left = Math.max(10, Math.min(x, window.innerWidth - rect.width - 10)) + 'px';
         popup.style.top = Math.max(10, Math.min(y, window.innerHeight - rect.height - 10)) + 'px';
         
-        const cleanup = () => { popup.remove(); document.removeEventListener('keydown', handleKey); };
+        const cleanup = () => { 
+            popup.style.display = 'none'; 
+            document.removeEventListener('keydown', handleKey); 
+            yesBtn.onclick = noBtn.onclick = null;
+        };
+        
         const handleKey = (e) => {
             if (e.key === 'Enter') { e.preventDefault(); cleanup(); resolve(true); }
             else if (e.key === 'Escape') { e.preventDefault(); cleanup(); resolve(false); }
         };
+        
         document.addEventListener('keydown', handleKey);
-        popup.querySelector('.confirm-yes').onclick = () => { cleanup(); resolve(true); };
-        popup.querySelector('.confirm-no').onclick = () => { cleanup(); resolve(false); };
-        popup.querySelector('.confirm-yes').focus();
+        yesBtn.onclick = () => { cleanup(); resolve(true); };
+        noBtn.onclick = () => { cleanup(); resolve(false); };
+        yesBtn.focus();
     });
 }
 
@@ -651,13 +660,7 @@ function renderNotesList(container, notes, l2, l3) {
     });
 }
 
-function updateNotesInUI() {
-    document.querySelectorAll('.notes-list').forEach(l => {
-        // This function is now redundant if we render correctly on creation, but useful for full re-renders
-        // We can remove it if we trust createNotesSection, but parseAndRenderMarkdown calls it.
-        // Let's keep logic inline there or here.
-    });
-}
+
 
 // ==================== SECTION MANAGEMENT ====================
 function updateSectionTitle(el, oldT, newT, level, parent) {
@@ -799,17 +802,19 @@ const getTLContext = () => {
     return { start, end, dur: end - start };
 };
 
-function renderTimeline() {
+function renderTimelineWorkBlurs() {
     const ctx = getTLContext();
     if (!ctx) return;
-    elements.timelineLabelStart.textContent = formatDateLabel(ctx.start);
-    elements.timelineLabelEnd.textContent = formatDateLabel(ctx.end);
-    elements.timelineSvg.querySelectorAll('.timeline-event-star, .timeline-tooltip, .timeline-work-indicator').forEach(e => e.remove());
     
-    // Work Blurs
+    elements.timelineSvg.querySelectorAll('.timeline-work-indicator').forEach(e => e.remove());
+
     const grp = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     grp.setAttribute('class', 'timeline-work-indicator');
-    elements.timelineSvg.insertBefore(grp, elements.timelineSvg.querySelector('.timeline-hitbox'));
+    
+    const hitbox = elements.timelineSvg.querySelector('.timeline-hitbox');
+    if (hitbox) elements.timelineSvg.insertBefore(grp, hitbox);
+    else elements.timelineSvg.appendChild(grp);
+
     const dayW = 1000 / Math.ceil(ctx.dur / 86400000);
     Object.entries(state.dailyWorkTime).forEach(([d, s]) => {
         const date = new Date(d);
@@ -822,6 +827,16 @@ function renderTimeline() {
             grp.appendChild(r);
         }
     });
+}
+
+function renderTimeline() {
+    const ctx = getTLContext();
+    if (!ctx) return;
+    elements.timelineLabelStart.textContent = formatDateLabel(ctx.start);
+    elements.timelineLabelEnd.textContent = formatDateLabel(ctx.end);
+    elements.timelineSvg.querySelectorAll('.timeline-event-star, .timeline-tooltip').forEach(e => e.remove());
+    
+    renderTimelineWorkBlurs();
 
     // Current Dot
     const now = new Date(), dot = elements.timelineSvg.querySelector('.timeline-current-dot');
