@@ -658,6 +658,20 @@ header h1:empty:before {
     line-height: 1.5;
     white-space: pre-wrap;
     word-break: break-word;
+    cursor: text;
+    outline: none;
+    padding: 2px 4px;
+    margin: -2px -4px;
+    border-radius: 2px;
+    transition: background 0.2s ease;
+}
+
+.note-content:hover {
+    background: var(--hover);
+}
+
+.note-content:focus {
+    background: var(--focus);
 }
 
 .note-timestamp {

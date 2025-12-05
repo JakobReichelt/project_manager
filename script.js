@@ -805,11 +805,49 @@ function createNoteCard(note, index, l2, l3, board) {
     
     noteEl.innerHTML = `
         <div class="note-item-header">
-            <div class="note-content">${note.text}</div>
+            <div class="note-content" contenteditable="true" spellcheck="false">${note.text}</div>
             <button class="note-delete-btn">×</button>
         </div>
         <div class="note-timestamp">${note.timestamp}</div>
     `;
+    
+    const contentEl = noteEl.querySelector('.note-content');
+    let currentText = note.text;
+    
+    // Prevent drag when editing
+    contentEl.onfocus = () => {
+        noteEl.draggable = false;
+    };
+    
+    // Handle saving the edited note
+    contentEl.onblur = () => {
+        const newText = contentEl.textContent.trim();
+        if (newText && newText !== currentText) {
+            const noteId = parseInt(noteEl.dataset.id);
+            const notes = state.projectData[l2][l3].oldNotes;
+            const noteToUpdate = notes.find(n => n.id === noteId);
+            if (noteToUpdate) {
+                noteToUpdate.text = newText;
+                currentText = newText;
+                saveToFile();
+            }
+        } else if (!newText) {
+            contentEl.textContent = currentText;
+        }
+        noteEl.draggable = true;
+    };
+    
+    contentEl.onkeydown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            contentEl.blur();
+        }
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            contentEl.textContent = currentText;
+            contentEl.blur();
+        }
+    };
     
     noteEl.querySelector('.note-delete-btn').onclick = async (e) => {
         e.stopPropagation();
@@ -1093,11 +1131,7 @@ function parseAndRenderMarkdown(md) {
             curL2.querySelector('.section-content-2').insertBefore(createSection(3, curL3Name, curL2Name), curL2.querySelector('.add-subsection-btn'));
         } else if (l.startsWith('**Notes:**') && curL3Name) {
             let notes = []; i++;
-            while (i < lines.length && !lines[i].startsWith('#') && !lines[i].startsWith('**Notes:**')) notes.push(lines[i++]);
-            i--; state.projectData[curL2Name][curL3Name].notes = notes.join('\n').trim();
-        } else if (l.startsWith('**Notes:**') && curL3Name) {
-            let notes = []; i++;
-            while (i < lines.length && !lines[i].startsWith('#') && !lines[i].startsWith('**')) {
+            while (i < lines.length && !lines[i].startsWith('#') && !lines[i].startsWith('**Notes:**')) {
                 const line = lines[i].trim();
                 if (line.startsWith('- [')) {
                     notes.push(line);
