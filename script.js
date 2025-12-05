@@ -189,8 +189,8 @@ const generateSimilarColor = (base, idx) => {
 // ==================== THEME ====================
 const THEME_STORAGE_KEY = 'pm-theme';
 const THEME_ICONS = {
-    light: `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M4.22 4.22l1.77 1.77M18.01 17.99l1.77 1.79M2 12h2.5M19.5 12H22M4.22 19.78l1.77-1.79M18.01 6.01l1.77-1.79"/></svg>`,
-    dark: `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.5A9 9 0 1 1 11.5 3a7 7 0 0 0 9.5 9.5Z"/></svg>`
+    light: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M4.22 4.22l1.77 1.77M18.01 17.99l1.77 1.79M2 12h2.5M19.5 12H22M4.22 19.78l1.77-1.79M18.01 6.01l1.77-1.79"/></svg>`,
+    dark: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.5A9 9 0 1 1 11.5 3a7 7 0 0 0 9.5 9.5Z"/></svg>`
 };
 
 function applyTheme(mode = 'light') {

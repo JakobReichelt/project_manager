@@ -188,16 +188,10 @@ header h1:empty:before {
 }
 
 .theme-toggle-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 44px;
-    padding: 0;
+    padding: 8px 16px;
     border: 1px solid var(--border);
     background: var(--button-bg);
     color: var(--button-text);
-    border-radius: 6px;
     transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
