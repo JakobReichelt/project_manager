@@ -610,105 +610,339 @@ function updateTimeDisplays() {
 function createNotesSection(l2, l3) {
     const div = document.createElement('div');
     div.className = 'notes-section';
-    div.innerHTML = `<div class="notes-header">Notes</div><textarea class="notes-input" placeholder="Add notes... (Ctrl+Enter)"></textarea><div class="notes-list"></div>`;
-    const input = div.querySelector('.notes-input');
-    const list = div.querySelector('.notes-list');
+    div.innerHTML = `
+        <div class="kanban-board">
+            <div class="kanban-column todo">
+                <div class="kanban-column-header"><span class="column-count">0</span> To Do <button class="add-note-btn" title="Add note">+</button></div>
+                <div class="kanban-column-content" data-status="todo"></div>
+            </div>
+            <div class="kanban-column in-progress">
+                <div class="kanban-column-header"><span class="column-count">0</span> In Progress <button class="add-note-btn" title="Add note">+</button></div>
+                <div class="kanban-column-content" data-status="in-progress"></div>
+            </div>
+            <div class="kanban-column done">
+                <div class="kanban-column-header"><span class="column-count">0</span> Done <button class="add-note-btn" title="Add note">+</button></div>
+                <div class="kanban-column-content" data-status="done"></div>
+            </div>
+        </div>`;
+    const board = div.querySelector('.kanban-board');
     
-    list.dataset.level2 = l2;
-    list.dataset.level3 = l3;
-
-    if (state.projectData[l2]?.[l3]?.notes) {
-        input.value = state.projectData[l2][l3].notes;
+    board.dataset.level2 = l2;
+    board.dataset.level3 = l3;
+    
+    // Setup add note buttons
+    board.querySelectorAll('.add-note-btn').forEach(btn => {
+        btn.onclick = (e) => {
+            e.stopPropagation();
+            const column = btn.closest('.kanban-column');
+            const status = column.querySelector('.kanban-column-content').dataset.status;
+            createEditableNote(board, l2, l3, status);
+        };
+    });
+    
+    // Convert and render existing notes
+    const oldNotes = state.projectData[l2]?.[l3]?.oldNotes || [];
+    const convertedNotes = convertNotesToKanban(oldNotes);
+    if (JSON.stringify(oldNotes) !== JSON.stringify(convertedNotes)) {
+        state.projectData[l2][l3].oldNotes = convertedNotes;
     }
-
-    input.oninput = () => {
-        if (state.projectData[l2]?.[l3]) {
-            state.projectData[l2][l3].notes = input.value;
-        }
-    };
-
-    input.onkeydown = (e) => {
-        if (e.ctrlKey && e.key === 'Enter') {
-            e.preventDefault();
-            const txt = input.value.trim();
-            if (!txt) return alert('Enter a note.');
-            const note = `[${new Date().toLocaleString()}]\n${txt}`;
-            state.projectData[l2][l3].oldNotes = [note, ...(state.projectData[l2][l3].oldNotes || [])];
-            state.projectData[l2][l3].notes = '';
-            renderNotesList(list, state.projectData[l2][l3].oldNotes, l2, l3);
-            saveToFile();
-            input.value = '';
-        }
-    };
-    renderNotesList(list, state.projectData[l2]?.[l3]?.oldNotes || [], l2, l3);
+    renderKanbanBoard(board, convertedNotes, l2, l3);
     return div;
 }
 
-function renderNotesList(container, notes, l2, l3) {
-    if (!notes.length) { container.innerHTML = '<div class="notes-empty">No notes yet</div>'; return; }
-    container.innerHTML = notes.map((n, i) => `<div class="note-item" draggable="true" data-index="${i}"><div class="note-content">${n.replace(/\[([^\]]+:\d{2}):\d{2}([^\]]*)\]/g, '$1$2')}</div><button class="note-delete-btn">×</button></div>`).join('');
-    
-    let placeholder = null;
+function convertNotesToKanban(notes) {
+    if (!notes || !notes.length) return [];
+    // Check if already in kanban format
+    if (notes[0] && typeof notes[0] === 'object' && 'status' in notes[0]) {
+        return notes;
+    }
+    // Convert old string format to kanban format
+    return notes.map((n, i) => {
+        if (typeof n === 'string') {
+            const match = n.match(/^\[([^\]]+)\]\n?([\s\S]*)$/);
+            return {
+                text: match ? match[2].trim() : n,
+                timestamp: match ? match[1] : new Date().toLocaleString(),
+                status: 'todo',
+                id: Date.now() + i
+            };
+        }
+        return n;
+    });
+}
 
-    const getDragAfterElement = (y) => {
-        const draggableElements = [...container.querySelectorAll('.note-item:not(.dragging-hidden)')];
+function renderKanbanBoard(board, notes, l2, l3) {
+    const columns = {
+        'todo': board.querySelector('[data-status="todo"]'),
+        'in-progress': board.querySelector('[data-status="in-progress"]'),
+        'done': board.querySelector('[data-status="done"]')
+    };
+    
+    // Clear all columns
+    Object.values(columns).forEach(col => col.innerHTML = '');
+    
+    // Count notes per column
+    const counts = { 'todo': 0, 'in-progress': 0, 'done': 0 };
+    
+    // Render notes into appropriate columns
+    notes.forEach((note, index) => {
+        const status = note.status || 'todo';
+        counts[status]++;
+        const noteEl = createNoteCard(note, index, l2, l3, board);
+        columns[status].appendChild(noteEl);
+    });
+    
+    // Update column counts
+    board.querySelectorAll('.kanban-column').forEach(col => {
+        const status = col.querySelector('.kanban-column-content').dataset.status;
+        col.querySelector('.column-count').textContent = counts[status];
+    });
+    
+    // Add empty state to empty columns
+    Object.entries(columns).forEach(([status, col]) => {
+        if (counts[status] === 0) {
+            col.innerHTML = '<div class="notes-empty">Drop notes here</div>';
+        }
+    });
+    
+    // Setup drag and drop for columns
+    setupKanbanDragDrop(board, l2, l3);
+}
+
+function createEditableNote(board, l2, l3, status) {
+    const column = board.querySelector(`[data-status="${status}"]`);
+    
+    // Remove empty state if present
+    const emptyState = column.querySelector('.notes-empty');
+    if (emptyState) emptyState.remove();
+    
+    // Create new editable note card
+    const noteEl = document.createElement('div');
+    noteEl.className = 'note-item editing';
+    noteEl.dataset.status = status;
+    
+    const noteId = Date.now();
+    noteEl.dataset.id = noteId;
+    
+    noteEl.innerHTML = `
+        <div class="note-item-header">
+            <div class="note-content" contenteditable="true"></div>
+            <button class="note-delete-btn">×</button>
+        </div>
+        <div class="note-timestamp">${new Date().toLocaleString()}</div>
+    `;
+    
+    // Insert at the top of the column
+    column.insertBefore(noteEl, column.firstChild);
+    
+    const contentEl = noteEl.querySelector('.note-content');
+    contentEl.focus();
+    
+    // Handle saving the note
+    const saveNote = () => {
+        const text = contentEl.textContent.trim();
+        if (text) {
+            const note = {
+                text: text,
+                timestamp: new Date().toLocaleString(),
+                status: status,
+                id: noteId
+            };
+            const oldNotes = state.projectData[l2][l3].oldNotes || [];
+            const convertedNotes = convertNotesToKanban(oldNotes);
+            convertedNotes.unshift(note); // Add at beginning
+            state.projectData[l2][l3].oldNotes = convertedNotes;
+            saveToFile();
+        }
+        // Re-render the board
+        renderKanbanBoard(board, state.projectData[l2][l3].oldNotes || [], l2, l3);
+    };
+    
+    contentEl.onblur = saveNote;
+    
+    contentEl.onkeydown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            contentEl.blur();
+        }
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            // Remove without saving
+            noteEl.remove();
+            // Re-render to restore empty state if needed
+            renderKanbanBoard(board, state.projectData[l2][l3].oldNotes || [], l2, l3);
+        }
+    };
+    
+    noteEl.querySelector('.note-delete-btn').onclick = (e) => {
+        e.stopPropagation();
+        noteEl.remove();
+        // Re-render to restore empty state if needed
+        renderKanbanBoard(board, state.projectData[l2][l3].oldNotes || [], l2, l3);
+    };
+}
+
+function createNoteCard(note, index, l2, l3, board) {
+    const noteEl = document.createElement('div');
+    noteEl.className = 'note-item';
+    noteEl.draggable = true;
+    noteEl.dataset.index = index;
+    noteEl.dataset.id = note.id;
+    noteEl.dataset.status = note.status || 'todo';
+    
+    noteEl.innerHTML = `
+        <div class="note-item-header">
+            <div class="note-content">${note.text}</div>
+            <button class="note-delete-btn">×</button>
+        </div>
+        <div class="note-timestamp">${note.timestamp}</div>
+    `;
+    
+    noteEl.querySelector('.note-delete-btn').onclick = async (e) => {
+        e.stopPropagation();
+        if (await showConfirmPopup('Delete note?', e.clientX, e.clientY)) {
+            const noteId = parseInt(noteEl.dataset.id);
+            state.projectData[l2][l3].oldNotes = state.projectData[l2][l3].oldNotes.filter(n => n.id !== noteId);
+            renderKanbanBoard(board, state.projectData[l2][l3].oldNotes, l2, l3);
+            saveToFile();
+        }
+    };
+    
+    return noteEl;
+}
+
+function setupKanbanDragDrop(board, l2, l3) {
+    let draggedNote = null;
+    let placeholder = null;
+    
+    const getDragAfterElement = (container, y) => {
+        const draggableElements = [...container.querySelectorAll('.note-item:not(.dragging)')];
         return draggableElements.reduce((closest, child) => {
             const box = child.getBoundingClientRect();
             const offset = y - box.top - box.height / 2;
             if (offset < 0 && offset > closest.offset) {
                 return { offset: offset, element: child };
-            } else {
-                return closest;
             }
+            return closest;
         }, { offset: Number.NEGATIVE_INFINITY }).element;
     };
-
-    container.ondragover = (e) => {
-        e.preventDefault();
-        const drag = container.querySelector('.dragging-hidden');
-        if (drag && placeholder) {
-            const afterElement = getDragAfterElement(e.clientY);
-            if (afterElement == null) {
-                container.appendChild(placeholder);
-            } else {
-                container.insertBefore(placeholder, afterElement);
-            }
-        }
-    };
-
-    container.querySelectorAll('.note-item').forEach((item, i) => {
+    
+    board.querySelectorAll('.note-item').forEach(item => {
         item.ondragstart = (e) => {
+            draggedNote = item;
+            item.classList.add('dragging');
+            
             placeholder = document.createElement('div');
             placeholder.className = 'note-placeholder';
             placeholder.style.height = item.offsetHeight + 'px';
             
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', item.dataset.id);
+            
             setTimeout(() => {
-                item.classList.add('dragging-hidden');
-                item.parentNode.insertBefore(placeholder, item);
+                item.style.display = 'none';
+                item.parentNode.insertBefore(placeholder, item.nextSibling);
             }, 0);
         };
-
+        
         item.ondragend = () => {
-            if (placeholder && placeholder.parentNode) {
-                placeholder.parentNode.insertBefore(item, placeholder);
-                placeholder.remove();
-            }
-            item.classList.remove('dragging-hidden');
-            placeholder = null;
+            item.classList.remove('dragging');
+            item.style.display = '';
             
-            state.projectData[l2][l3].oldNotes = Array.from(container.querySelectorAll('.note-content')).map(el => el.textContent);
-            saveToFile();
-        };
-
-        item.querySelector('.note-delete-btn').onclick = async (e) => {
-            e.stopPropagation();
-            if (await showConfirmPopup('Delete note?', e.clientX, e.clientY)) {
-                state.projectData[l2][l3].oldNotes.splice(i, 1);
-                renderNotesList(container, state.projectData[l2][l3].oldNotes, l2, l3);
-                saveToFile();
+            if (placeholder && placeholder.parentNode) {
+                const newColumn = placeholder.parentNode;
+                const newStatus = newColumn.dataset.status;
+                
+                // Remove empty state if present
+                const emptyState = newColumn.querySelector('.notes-empty');
+                if (emptyState) emptyState.remove();
+                
+                // Insert the item at placeholder position
+                newColumn.insertBefore(item, placeholder);
+                placeholder.remove();
+                
+                // Update note status and reorder
+                const noteId = parseInt(item.dataset.id);
+                const notes = state.projectData[l2][l3].oldNotes;
+                const noteIndex = notes.findIndex(n => n.id === noteId);
+                
+                if (noteIndex !== -1) {
+                    notes[noteIndex].status = newStatus;
+                    item.dataset.status = newStatus;
+                    
+                    // Reorder notes based on DOM order
+                    const reorderedNotes = [];
+                    board.querySelectorAll('.note-item').forEach(noteEl => {
+                        const id = parseInt(noteEl.dataset.id);
+                        const note = notes.find(n => n.id === id);
+                        if (note) reorderedNotes.push(note);
+                    });
+                    
+                    state.projectData[l2][l3].oldNotes = reorderedNotes;
+                    saveToFile();
+                }
+                
+                // Re-render to update counts
+                renderKanbanBoard(board, state.projectData[l2][l3].oldNotes, l2, l3);
             }
+            
+            placeholder = null;
+            draggedNote = null;
+            
+            // Remove drag-over class from all columns
+            board.querySelectorAll('.kanban-column-content').forEach(col => {
+                col.classList.remove('drag-over');
+            });
         };
     });
+    
+    board.querySelectorAll('.kanban-column-content').forEach(column => {
+        column.ondragover = (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            
+            column.classList.add('drag-over');
+            
+            if (placeholder) {
+                const afterElement = getDragAfterElement(column, e.clientY);
+                // Remove empty state for drag preview
+                const emptyState = column.querySelector('.notes-empty');
+                if (emptyState) emptyState.style.display = 'none';
+                
+                if (afterElement == null) {
+                    column.appendChild(placeholder);
+                } else {
+                    column.insertBefore(placeholder, afterElement);
+                }
+            }
+        };
+        
+        column.ondragleave = (e) => {
+            // Only remove class if actually leaving the column
+            if (!column.contains(e.relatedTarget)) {
+                column.classList.remove('drag-over');
+                const emptyState = column.querySelector('.notes-empty');
+                if (emptyState && column.querySelectorAll('.note-item').length === 0) {
+                    emptyState.style.display = '';
+                }
+            }
+        };
+        
+        column.ondrop = (e) => {
+            e.preventDefault();
+            column.classList.remove('drag-over');
+        };
+    });
+}
+
+// Legacy function for backward compatibility
+function renderNotesList(container, notes, l2, l3) {
+    // Find the parent kanban board and redirect
+    const board = container.closest('.notes-section')?.querySelector('.kanban-board');
+    if (board) {
+        const convertedNotes = convertNotesToKanban(notes);
+        renderKanbanBoard(board, convertedNotes, l2, l3);
+    }
 }
 
 
@@ -815,11 +1049,33 @@ function parseAndRenderMarkdown(md) {
         } else if (l.startsWith('**Old Notes:**') && curL3Name) {
             let notes = []; i++;
             while (i < lines.length && !lines[i].startsWith('#')) notes.push(lines[i++]);
-            i--; state.projectData[curL2Name][curL3Name].oldNotes = notes.join('\n').trim().split('\n---\n').map(n => n.trim()).filter(Boolean);
+            i--; 
+            const rawNotes = notes.join('\n').trim();
+            // Try to parse as JSON (new kanban format), otherwise parse as old format
+            if (rawNotes.startsWith('[') && rawNotes.includes('"status"')) {
+                try {
+                    state.projectData[curL2Name][curL3Name].oldNotes = JSON.parse(rawNotes);
+                } catch {
+                    state.projectData[curL2Name][curL3Name].oldNotes = rawNotes.split('\n---\n').map(n => n.trim()).filter(Boolean);
+                }
+            } else {
+                state.projectData[curL2Name][curL3Name].oldNotes = rawNotes.split('\n---\n').map(n => n.trim()).filter(Boolean);
+            }
         }
     }
-    // Re-render notes lists to ensure they are populated
-    document.querySelectorAll('.notes-list').forEach(l => renderNotesList(l, state.projectData[l.dataset.level2]?.[l.dataset.level3]?.oldNotes || [], l.dataset.level2, l.dataset.level3));
+    // Re-render kanban boards to ensure they are populated
+    document.querySelectorAll('.kanban-board').forEach(board => {
+        const l2 = board.dataset.level2;
+        const l3 = board.dataset.level3;
+        if (l2 && l3) {
+            const notes = state.projectData[l2]?.[l3]?.oldNotes || [];
+            const convertedNotes = convertNotesToKanban(notes);
+            if (state.projectData[l2]?.[l3]) {
+                state.projectData[l2][l3].oldNotes = convertedNotes;
+            }
+            renderKanbanBoard(board, convertedNotes, l2, l3);
+        }
+    });
     updateProjectTimeDisplay();
     if (state.hasProject || state.fileContent.trim()) elements.addSectionControls.style.display = 'flex';
 }
@@ -857,7 +1113,14 @@ function updateMarkdownContent() {
             if (d) {
                 newContent += `\nTime: ${d.totalTime || 0}\n` + (d.color ? `Color: ${d.color}\n` : '');
                 if (d.notes) newContent += `\n**Notes:**\n${d.notes}\n`;
-                if (d.oldNotes?.length) newContent += `\n**Old Notes:**\n${d.oldNotes.join('\n---\n')}\n`;
+                if (d.oldNotes?.length) {
+                    // Check if notes are in kanban format (objects with status)
+                    if (d.oldNotes[0] && typeof d.oldNotes[0] === 'object' && 'status' in d.oldNotes[0]) {
+                        newContent += `\n**Old Notes:**\n${JSON.stringify(d.oldNotes)}\n`;
+                    } else {
+                        newContent += `\n**Old Notes:**\n${d.oldNotes.join('\n---\n')}\n`;
+                    }
+                }
                 newContent += '\n';
             }
             continue;

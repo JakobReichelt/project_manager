@@ -487,36 +487,115 @@ header h1:empty:before {
     cursor: not-allowed;
 }
 
-/* Notes Section */
+/* Notes Section - Kanban Board */
 .notes-section {
     margin-top: 15px;
 }
 
-.notes-header {
-    font-size: 1.1em;
-    font-weight: 400;
-    margin-bottom: 10px;
-    color: var(--text);
-}
-
-.notes-input {
-    width: 100%;
-    min-height: 60px;
-    padding: 12px;
-    border: 1px solid var(--border);
-    font-size: 14px;
-    resize: vertical;
-    transition: background 0.2s ease;
-    background: var(--note-bg);
-}
-
-.notes-input:focus {
+/* Editable note input */
+.note-item.editing .note-content {
     outline: none;
     background: var(--note-hover);
+    min-height: 40px;
+    padding: 4px;
+    border-radius: 3px;
 }
 
-.notes-list {
-    margin-top: 15px;
+.note-item.editing .note-content:empty:before {
+    content: 'Type your note...';
+    color: var(--muted-2);
+    font-style: italic;
+}
+
+/* Kanban Board */
+.kanban-board {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    padding: 0 20px 10px 20px;
+    min-height: 200px;
+    justify-content: center;
+}
+
+.kanban-column {
+    flex: 1;
+    min-width: 200px;
+    max-width: 350px;
+    background: var(--panel-alt);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+}
+
+.kanban-column-header {
+    padding: 12px 15px;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--panel);
+    border-radius: 6px 6px 0 0;
+}
+
+.kanban-column-header .column-count {
+    background: var(--button-bg);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--muted);
+    margin-right: 8px;
+}
+
+.kanban-column-header .add-note-btn {
+    margin-left: auto;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid var(--border);
+    background: var(--button-bg);
+    color: var(--button-text);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+}
+
+.kanban-column-header .add-note-btn:hover {
+    background: var(--button-hover);
+}
+
+.kanban-column-content {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    min-height: 150px;
+    transition: background 0.2s ease;
+}
+
+.kanban-column-content.drag-over {
+    background: var(--hover);
+}
+
+.kanban-column.todo .kanban-column-header {
+    border-left: 3px solid #6b7280;
+}
+
+.kanban-column.in-progress .kanban-column-header {
+    border-left: 3px solid #3b82f6;
+}
+
+.kanban-column.done .kanban-column-header {
+    border-left: 3px solid #22c55e;
 }
 
 .notes-empty {
@@ -524,36 +603,59 @@ header h1:empty:before {
     text-align: center;
     color: var(--muted-2);
     font-style: italic;
-    font-size: 14px;
+    font-size: 13px;
 }
 
+/* Kanban Note Cards */
 .note-item {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 10px;
+    flex-direction: column;
+    gap: 8px;
     padding: 12px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     border: 1px solid var(--border);
     background: var(--note-bg);
-    cursor: move;
-    transition: background 0.2s ease;
+    cursor: grab;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .note-item:hover {
     background: var(--note-hover);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.note-item:active {
+    cursor: grabbing;
 }
 
 .note-item.dragging {
-    opacity: 0.5;
+    opacity: 0.8;
+    transform: rotate(2deg);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.note-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
 }
 
 .note-content {
     flex: 1;
     color: var(--note-text);
     font-size: 14px;
-    line-height: 1.6;
+    line-height: 1.5;
     white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.note-timestamp {
+    font-size: 11px;
+    color: var(--muted-2);
+    margin-top: 4px;
 }
 
 .note-delete-btn {
@@ -562,10 +664,16 @@ header h1:empty:before {
     color: var(--button-text);
     border: 1px solid var(--border);
     cursor: pointer;
-    font-size: 18px;
+    font-size: 16px;
     line-height: 1;
     transition: background 0.2s ease;
     flex-shrink: 0;
+    border-radius: 3px;
+    opacity: 0;
+}
+
+.note-item:hover .note-delete-btn {
+    opacity: 1;
 }
 
 .note-delete-btn:hover {
@@ -575,23 +683,16 @@ header h1:empty:before {
 
 /* Section Controls (Edit, Delete, Move) */
 .section-controls {
-    display: none;
+    display: flex;
     gap: 5px;
     align-items: center;
-    position: absolute;
-    right: 80px;
+    visibility: hidden;
 }
 
 /* Show controls on hover when section is collapsed */
 .section-level-2.is-collapsed:hover .section-controls,
 .section-level-3.is-collapsed:hover .section-controls {
-    display: flex;
-}
-
-/* Ensure header has relative positioning for absolute controls */
-.section-header-2 > div:last-child,
-.section-header-3 > div:last-child {
-    position: relative;
+    visibility: visible;
 }
 
 .section-ctrl-btn {
@@ -1089,8 +1190,9 @@ header h1:empty:before {
 .note-placeholder {
     background: var(--note-placeholder-bg);
     border: 2px dashed var(--note-placeholder-border);
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     border-radius: 4px;
+    min-height: 60px;
 }
 
 /* Help Button */
