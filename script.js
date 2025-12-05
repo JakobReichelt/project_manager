@@ -729,6 +729,29 @@ function updateSectionTitle(el, oldT, newT, level, parent) {
 async function deleteSection(el, title, level, parent, x, y) {
     if (!await showConfirmPopup(level === 2 ? `Delete "${title}" & subsections?` : `Delete "${title}"?`, x, y)) return;
     if (level === 2) delete state.projectData[title]; else delete state.projectData[parent][title];
+    
+    // Remove from file content
+    const lines = state.fileContent.split('\n');
+    if (level === 2) {
+        // Remove the entire level 2 section and all its subsections
+        const startIdx = lines.findIndex(l => l === `## ${title}`);
+        if (startIdx !== -1) {
+            let endIdx = startIdx + 1;
+            while (endIdx < lines.length && !lines[endIdx].startsWith('## ')) endIdx++;
+            lines.splice(startIdx, endIdx - startIdx);
+            state.fileContent = lines.join('\n');
+        }
+    } else {
+        // Remove only the level 3 subsection
+        const startIdx = lines.findIndex(l => l === `### ${title}`);
+        if (startIdx !== -1) {
+            let endIdx = startIdx + 1;
+            while (endIdx < lines.length && !lines[endIdx].startsWith('#')) endIdx++;
+            lines.splice(startIdx, endIdx - startIdx);
+            state.fileContent = lines.join('\n');
+        }
+    }
+    
     el.remove(); saveToFile();
 }
 
@@ -1080,6 +1103,30 @@ const hideHelpModal = () => helpModal.classList.remove('show');
 helpBtn.onclick = showHelpModal;
 helpModal.querySelector('.close').onclick = hideHelpModal;
 window.addEventListener('click', (e) => { if (e.target === helpModal) hideHelpModal(); });
+
+// Load Example Project
+const loadExampleBtn = document.getElementById('load-example-btn');
+loadExampleBtn.onclick = async () => {
+    try {
+        const response = await fetch('example-project.md');
+        if (!response.ok) throw new Error('Failed to load example project');
+        const content = await response.text();
+        state.fileContent = content;
+        state.projectName = 'Example Project';
+        state.currentFile = 'example-project.md';
+        state.hasProject = true;
+        elements.projectTitle.textContent = state.projectName;
+        parseAndRenderMarkdown(content);
+        showTimeline();
+        elements.projectTitle.contentEditable = 'true';
+        elements.downloadBtn.style.display = 'inline-block';
+        elements.headerUploadBtn.style.display = 'inline-block';
+        elements.centerUploadContainer.style.display = 'none';
+        hideHelpModal();
+    } catch (err) {
+        alert('Could not load example project: ' + err.message);
+    }
+};
 
 window.onbeforeunload = (e) => { if (state.hasProject) { e.preventDefault(); e.returnValue = ''; } };
 document.onkeydown = (e) => {

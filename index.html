@@ -110,8 +110,10 @@
     <!-- Modal for help information -->
     <div id="help-modal" class="modal">
         <div class="modal-content help-modal-content">
-            <span class="close">&times;</span>
-            <h2>How to Use This Project Manager</h2>
+            <div class="help-modal-header">
+                <h2>How to Use This Project Manager</h2>
+                <span class="close">&times;</span>
+            </div>
             <div class="modal-body help-modal-body">
                 <section class="help-section">
                     <h3>Getting Started</h3>
@@ -150,6 +152,9 @@
                     <p><strong>Ctrl+Enter:</strong> Quickly add sections or events in modal dialogs.</p>
                     <p><strong>Editable Content:</strong> Click on section titles and text areas to edit directly.</p>
                 </section>
+            </div>
+            <div class="modal-buttons help-modal-buttons">
+                <button id="load-example-btn" class="modal-add-btn">Load Example Project</button>
             </div>
         </div>
     </div>

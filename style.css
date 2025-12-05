@@ -182,6 +182,7 @@ header h1:empty:before {
     padding: 8px 16px;
     font-size: 13px;
     font-weight: 400;
+    font-family: 'Georgia', 'Times New Roman', serif;
     cursor: pointer;
     transition: background 0.2s ease;
     white-space: nowrap;
@@ -797,6 +798,25 @@ header h1:empty:before {
     background: var(--primary-hover);
 }
 
+#load-example-btn {
+    flex: 0;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 400;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    display: inline-block;
+    white-space: nowrap;
+    background: var(--button-bg);
+    color: var(--button-text);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+#load-example-btn:hover {
+    background: var(--button-hover);
+}
+
 .modal-cancel-btn {
     flex: 1;
     padding: 12px 24px;
@@ -1094,12 +1114,39 @@ header h1:empty:before {
 
 /* Help Modal */
 .help-modal-content {
-    max-width: 700px;
+    max-width: 900px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.help-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.help-modal-header h2 {
+    margin: 0;
+    flex: 1;
+}
+
+.help-modal-header .close {
+    flex: 0;
+    margin: 0;
 }
 
 .help-modal-body {
-    max-height: 70vh;
+    max-height: 80vh;
     overflow-y: auto;
+    flex: 1;
+}
+
+.help-modal-buttons {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
 }
 
 .help-section {

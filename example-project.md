@@ -4,7 +4,7 @@ Time: 172800
 
 DailyWork: {"2025-12-04":14400,"2025-12-03":10800,"2025-12-02":8640,"2025-12-01":12960,"2025-11-29":7200,"2025-11-27":9360,"2025-11-25":5400,"2025-11-20":16200,"2025-11-15":10800,"2025-11-10":7200}
 
-Timeline: {"startDate":"2025-10-20","endDate":"2026-02-28","events":[{"position":20,"note":"started playing around with this","date":"2025-10-20","id":1704067200000},{"position":45,"note":"got the basic stuff working!","date":"2025-11-20","id":1704153600000},{"position":70,"note":"added some cool features","date":"2025-12-04","id":1704240000000}]}
+Timeline: {"startDate":"2025-10-20","endDate":"2026-02-28","events":[{"position":20,"note":"started playing around with this","date":"2025-10-20","id":1},{"position":45,"note":"got the basic stuff working!","date":"2025-11-20","id":2},{"position":70,"note":"added some cool features","date":"2025-12-04","id":3}]}
 
 ## Sketches & Ideas
 
