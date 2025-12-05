@@ -16,7 +16,7 @@ Color: #7fbc7f
 Time: 14400
 Color: #6aaa6a
 
-**Old Notes:**
+**Notes:**
 [4.12.2025, 13:22:15]
 drew out that cool idea i had last week... might actually work lol
 ---
@@ -31,7 +31,7 @@ trying to figure out the layout... so many options
 Time: 13200
 Color: #8dce8d
 
-**Old Notes:**
+**Notes:**
 [2.12.2025, 11:30:20]
 tested out some wild color combinations, some look pretty sick
 ---
@@ -48,7 +48,7 @@ Color: #7f7fcd
 Time: 54000
 Color: #6666aa
 
-**Old Notes:**
+**Notes:**
 [4.12.2025, 16:10:45]
 finally got that animation working... took way longer than it should have
 ---
@@ -72,7 +72,7 @@ started throwing together some react components
 Time: 32400
 Color: #8888dd
 
-**Old Notes:**
+**Notes:**
 [3.12.2025, 15:20:10]
 set up the api endpoints, nothing fancy just rest stuff
 ---
@@ -95,7 +95,7 @@ Color: #d980a0
 Time: 16200
 Color: #c67089
 
-**Old Notes:**
+**Notes:**
 [4.12.2025, 14:45:30]
 wrote some unit tests, they all pass which is nice
 ---
@@ -110,7 +110,7 @@ manual testing on different browsers, looks decent
 Time: 16200
 Color: #e89aaf
 
-**Old Notes:**
+**Notes:**
 [4.12.2025, 10:30:20]
 found and fixed that weird spacing issue
 ---
@@ -130,7 +130,7 @@ Color: #ff9d7f
 Time: 12960
 Color: #ff8860
 
-**Old Notes:**
+**Notes:**
 [4.12.2025, 11:50:25]
 wrote down some feature ideas for later
 ---
@@ -145,7 +145,7 @@ brainstorming session, had some decent ideas
 Time: 12960
 Color: #ffb399
 
-**Old Notes:**
+**Notes:**
 [3.12.2025, 12:40:30]
 wrote a quick readme so i remember how to run this thing
 ---

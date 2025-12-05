@@ -406,7 +406,7 @@ function addLevel3Section(title, parent) {
         const count = Object.keys(state.projectData[parent] || {}).filter(k => !['totalTime', 'color'].includes(k)).length;
         const color = pColor ? generateSimilarColor(pColor, count) : '';
         
-        lines.splice(insertIdx, 0, '', `### ${title}`, '', 'Time: 0', color ? `Color: ${color}` : '', '**Notes:**', '', '**Old Notes:**', '');
+        lines.splice(insertIdx, 0, '', `### ${title}`, '', 'Time: 0', color ? `Color: ${color}` : '', '**Notes:**', '', '**Notes:**', '');
         state.fileContent = lines.join('\n');
         
         if (!state.projectData[parent]) state.projectData[parent] = { totalTime: 0 };
@@ -1093,9 +1093,9 @@ function parseAndRenderMarkdown(md) {
             curL2.querySelector('.section-content-2').insertBefore(createSection(3, curL3Name, curL2Name), curL2.querySelector('.add-subsection-btn'));
         } else if (l.startsWith('**Notes:**') && curL3Name) {
             let notes = []; i++;
-            while (i < lines.length && !lines[i].startsWith('#') && !lines[i].startsWith('**Old Notes:**')) notes.push(lines[i++]);
+            while (i < lines.length && !lines[i].startsWith('#') && !lines[i].startsWith('**Notes:**')) notes.push(lines[i++]);
             i--; state.projectData[curL2Name][curL3Name].notes = notes.join('\n').trim();
-        } else if (l.startsWith('**Old Notes:**') && curL3Name) {
+        } else if (l.startsWith('**Notes:**') && curL3Name) {
             let notes = []; i++;
             while (i < lines.length && !lines[i].startsWith('#') && !lines[i].startsWith('**')) {
                 const line = lines[i].trim();
@@ -1202,7 +1202,7 @@ function updateMarkdownContent() {
                         }
                         return `- [todo] ${note}`;
                     }).join('\n');
-                    newContent += `\n**Old Notes:**\n${formattedNotes}\n`;
+                    newContent += `\n**Notes:**\n${formattedNotes}\n`;
                 }
                 newContent += '\n';
             }
