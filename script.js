@@ -6,6 +6,45 @@
     canvas.width = size;
     canvas.height = size;
     
+    const createIdleFavicon = () => {
+        const idleCanvas = document.createElement('canvas');
+        const idleCtx = idleCanvas.getContext('2d');
+        idleCanvas.width = size;
+        idleCanvas.height = size;
+        
+        const centerY = size / 2;
+        const dotRadius = 1.5;
+        const gapSize = dotRadius + 2;
+        
+        // Draw horizontal line in segments (skip area around dot)
+        idleCtx.strokeStyle = '#000000';
+        idleCtx.lineWidth = 1;
+        idleCtx.lineCap = 'round';
+        
+        // Left segment
+        idleCtx.beginPath();
+        idleCtx.moveTo(2, centerY);
+        idleCtx.lineTo(size / 2 - gapSize, centerY);
+        idleCtx.stroke();
+        
+        // Right segment
+        idleCtx.beginPath();
+        idleCtx.moveTo(size / 2 + gapSize, centerY);
+        idleCtx.lineTo(size - 2, centerY);
+        idleCtx.stroke();
+        
+        // Draw dot in the middle
+        idleCtx.fillStyle = '#FFFFFF';
+        idleCtx.strokeStyle = '#000000';
+        idleCtx.lineWidth = 1;
+        idleCtx.beginPath();
+        idleCtx.arc(size / 2, centerY, dotRadius, 0, Math.PI * 2);
+        idleCtx.fill();
+        idleCtx.stroke();
+        
+        return idleCanvas.toDataURL('image/png');
+    };
+    
     const animateFavicon = () => {
         const duration = 4000; // 4 seconds total cycle
         const animDuration = 2500; // animation takes 2.5s, rest is pause
@@ -87,8 +126,20 @@
     
     // Start animation when DOM is ready
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', animateFavicon);
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set idle favicon first as fallback
+            const link = document.getElementById('favicon') || document.querySelector('link[rel="icon"]');
+            if (link) {
+                link.href = createIdleFavicon();
+            }
+            animateFavicon();
+        });
     } else {
+        // Set idle favicon first as fallback
+        const link = document.getElementById('favicon') || document.querySelector('link[rel="icon"]');
+        if (link) {
+            link.href = createIdleFavicon();
+        }
         animateFavicon();
     }
 })();
