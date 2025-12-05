@@ -421,6 +421,13 @@ header h1:empty:before {
     overflow: hidden;
 }
 
+/* Timer inside subsections - only show bottom border */
+.section-content-3 .timer-section {
+    border-top: none;
+    border-left: none;
+    border-right: none;
+}
+
 .timer-wave-container {
     position: absolute;
     top: 0;
@@ -1202,6 +1209,7 @@ header h1:empty:before {
     border: none;
     font-size: 16px;
     font-weight: 400;
+    font-family: 'Georgia', 'Times New Roman', serif;
     cursor: pointer;
     transition: color 0.2s ease;
     display: flex;
