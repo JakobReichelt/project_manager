@@ -471,7 +471,7 @@ function createSection(level, title, parent = null) {
     
     const base = buildSectionBase({
         level, title, color,
-        timeText: isL2 ? formatTimeDisplay(time) : `Total: ${formatTimeDisplay(time)}`,
+        timeText: formatTimeDisplay(time),
         dataset: isL2 ? { section: title } : { level2: parent, level3: title }
     });
 
@@ -584,7 +584,7 @@ function createTimerSection(l2, l3) {
             sec++; disp.textContent = formatTime(sec);
             state.projectData[l2][l3].totalTime++; state.projectData[l2].totalTime++; state.totalProjectTime++;
             state.dailyWorkTime[getToday()] = (state.dailyWorkTime[getToday()] || 0) + 1;
-            totalDisp.textContent = `Total: ${formatTimeDisplay(state.projectData[l2][l3].totalTime)}`;
+            totalDisp.textContent = formatTimeDisplay(state.projectData[l2][l3].totalTime);
             updateTimeDisplays(); updateProjectTimeDisplay();
             if (sec % 60 === 0) renderTimelineWorkBlurs();
             if (sec % 900 === 0) { playPingSound(); pause.click(); }
