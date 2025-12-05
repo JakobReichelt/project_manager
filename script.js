@@ -545,7 +545,7 @@ function createTimerSection(l2, l3) {
         <div class="timer-wave-container"><svg class="timer-wave" viewBox="0 0 100 100" preserveAspectRatio="none"><path class="wave-path" style="stroke: ${data?.color || '#4A90D9'}" d="M0,100 Q12.5,100 25,100 T50,100 T75,100 T100,100" /></svg></div>
         <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 10px; position: relative; z-index: 1;">
             <div class="timer-display">00:00:00</div>
-            <div class="total-time-display">Total: ${formatTimeDisplay(data?.totalTime || 0)}</div>
+            <div class="total-time-display" style="margin-left: -40px;">Total: ${formatTimeDisplay(data?.totalTime || 0)}</div>
         </div>
         <div class="timer-controls" style="position: relative; z-index: 1;">
             <button class="timer-btn start">Start</button><button class="timer-btn pause" disabled>Pause</button><button class="timer-btn reset">Reset</button>
@@ -584,7 +584,7 @@ function createTimerSection(l2, l3) {
             sec++; disp.textContent = formatTime(sec);
             state.projectData[l2][l3].totalTime++; state.projectData[l2].totalTime++; state.totalProjectTime++;
             state.dailyWorkTime[getToday()] = (state.dailyWorkTime[getToday()] || 0) + 1;
-            totalDisp.textContent = formatTimeDisplay(state.projectData[l2][l3].totalTime);
+            totalDisp.textContent = `Total: ${formatTimeDisplay(state.projectData[l2][l3].totalTime)}`;
             updateTimeDisplays(); updateProjectTimeDisplay();
             if (sec % 60 === 0) renderTimelineWorkBlurs();
             if (sec % 900 === 0) { playPingSound(); pause.click(); }
@@ -656,16 +656,29 @@ function convertNotesToKanban(notes) {
     if (notes[0] && typeof notes[0] === 'object' && 'status' in notes[0]) {
         return notes;
     }
-    // Convert old string format to kanban format
+    // Convert human-friendly format to kanban format
     return notes.map((n, i) => {
         if (typeof n === 'string') {
-            const match = n.match(/^\[([^\]]+)\]\n?([\s\S]*)$/);
-            return {
-                text: match ? match[2].trim() : n,
-                timestamp: match ? match[1] : new Date().toLocaleString(),
-                status: 'todo',
-                id: Date.now() + i
-            };
+            // Format: - [status] text (timestamp)
+            const match = n.match(/^-\s*\[([^\]]+)\]\s*(.+?)\s*\(([^)]+)\)$/);
+            if (match) {
+                return {
+                    text: match[2].trim(),
+                    timestamp: match[3],
+                    status: match[1],
+                    id: Date.now() + i
+                };
+            }
+            // Format without timestamp: - [status] text
+            const matchNoTimestamp = n.match(/^-\s*\[([^\]]+)\]\s*(.+)$/);
+            if (matchNoTimestamp) {
+                return {
+                    text: matchNoTimestamp[2].trim(),
+                    timestamp: new Date().toLocaleString(),
+                    status: matchNoTimestamp[1],
+                    id: Date.now() + i
+                };
+            }
         }
         return n;
     });
@@ -1022,8 +1035,44 @@ function parseAndRenderMarkdown(md) {
     for (let i = 0; i < lines.length; i++) {
         const l = lines[i].trim();
         if (l.startsWith('Time:') && !curL2Name) state.totalProjectTime = parseInt(l.substring(5)) || 0;
-        else if (l.startsWith('DailyWork:')) try { state.dailyWorkTime = JSON.parse(l.substring(10)) || {}; } catch {}
-        else if (l.startsWith('Timeline:')) try { state.timeline = { ...state.timeline, ...JSON.parse(l.substring(9)) }; } catch {}
+        else if (l.startsWith('DailyWork:')) {
+            // Skip DailyWork line header - will be parsed from Daily Work: section below
+        }
+        else if (l.startsWith('Timeline Start:')) {
+            // New human-friendly format
+            state.timeline.startDate = l.substring(15).trim();
+        }
+        else if (l.startsWith('Timeline End:')) {
+            state.timeline.endDate = l.substring(13).trim();
+        }
+        else if (l.startsWith('Daily Work:')) {
+            // New human-friendly format - parse following lines
+            i++;
+            while (i < lines.length && lines[i].trim().startsWith('- ')) {
+                const match = lines[i].trim().match(/^-\s*([^:]+):\s*(.+)h$/);
+                if (match) {
+                    const date = match[1];
+                    const hours = parseFloat(match[2]);
+                    state.dailyWorkTime[date] = hours * 3600;
+                }
+                i++;
+            }
+            i--;
+        }
+        else if (l.startsWith('Timeline Events:')) {
+            // New human-friendly format - parse following lines
+            i++;
+            while (i < lines.length && lines[i].trim().startsWith('- ')) {
+                const match = lines[i].trim().match(/^-\s*([^:]+):\s*(.+)$/);
+                if (match) {
+                    const date = match[1];
+                    const note = match[2];
+                    state.timeline.events.push({ date, note, position: null, id: Date.now() });
+                }
+                i++;
+            }
+            i--;
+        }
         else if (lines[i].startsWith('## ') && !lines[i].startsWith('### ')) {
             curL2Name = lines[i].substring(3).trim();
             state.projectData[curL2Name] = { totalTime: 0 };
@@ -1048,19 +1097,15 @@ function parseAndRenderMarkdown(md) {
             i--; state.projectData[curL2Name][curL3Name].notes = notes.join('\n').trim();
         } else if (l.startsWith('**Old Notes:**') && curL3Name) {
             let notes = []; i++;
-            while (i < lines.length && !lines[i].startsWith('#')) notes.push(lines[i++]);
-            i--; 
-            const rawNotes = notes.join('\n').trim();
-            // Try to parse as JSON (new kanban format), otherwise parse as old format
-            if (rawNotes.startsWith('[') && rawNotes.includes('"status"')) {
-                try {
-                    state.projectData[curL2Name][curL3Name].oldNotes = JSON.parse(rawNotes);
-                } catch {
-                    state.projectData[curL2Name][curL3Name].oldNotes = rawNotes.split('\n---\n').map(n => n.trim()).filter(Boolean);
+            while (i < lines.length && !lines[i].startsWith('#') && !lines[i].startsWith('**')) {
+                const line = lines[i].trim();
+                if (line.startsWith('- [')) {
+                    notes.push(line);
                 }
-            } else {
-                state.projectData[curL2Name][curL3Name].oldNotes = rawNotes.split('\n---\n').map(n => n.trim()).filter(Boolean);
+                i++;
             }
+            i--; 
+            state.projectData[curL2Name][curL3Name].oldNotes = notes;
         }
     }
     // Re-render kanban boards to ensure they are populated
@@ -1083,14 +1128,50 @@ function parseAndRenderMarkdown(md) {
 function updateMarkdownContent() {
     const lines = state.fileContent.split('\n');
     let newContent = '', i = 0, firstSec = false;
-    const skip = () => { while (i < lines.length && (lines[i].trim() === '' || lines[i].startsWith('Time:') || lines[i].startsWith('Color:'))) i++; };
+    const skip = () => { 
+        while (i < lines.length && (
+            lines[i].trim() === '' || 
+            lines[i].startsWith('Time:') || 
+            lines[i].startsWith('Color:') || 
+            lines[i].startsWith('Daily Work:') || 
+            lines[i].startsWith('Timeline Start:') ||
+            lines[i].startsWith('Timeline End:') ||
+            lines[i].startsWith('Timeline Events:') ||
+            (lines[i].trim().startsWith('- ') && !lines[i].startsWith('## ') && !lines[i].startsWith('### '))
+        )) i++; 
+    };
 
     while (i < lines.length) {
         const l = lines[i];
-        if (l.startsWith('DailyWork:') || l.startsWith('Timeline:') || l.startsWith('Time:') || l.startsWith('Color:') || (!firstSec && l.trim() === '')) { i++; continue; }
+        if (l.startsWith('DailyWork:') || l.startsWith('Timeline Start:') || l.startsWith('Timeline End:') || l.startsWith('Timeline Events:') || l.startsWith('Daily Work:') || l.startsWith('Time:') || l.startsWith('Color:') || (!firstSec && l.trim() === '')) { i++; continue; }
         
         if (i === 0 && l.startsWith('# ')) {
-            newContent += `${l}\n\nTime: ${state.totalProjectTime}\n\nDailyWork: ${JSON.stringify(state.dailyWorkTime)}\n\nTimeline: ${JSON.stringify(state.timeline)}\n`;
+            newContent += `${l}\n\nTime: ${state.totalProjectTime}\n\n`;
+            
+            // Add DailyWork in human-friendly format
+            if (Object.keys(state.dailyWorkTime).length > 0) {
+                newContent += `Daily Work:\n`;
+                Object.entries(state.dailyWorkTime).sort().reverse().forEach(([date, seconds]) => {
+                    const hours = (seconds / 3600).toFixed(1);
+                    newContent += `- ${date}: ${hours}h\n`;
+                });
+                newContent += '\n';
+            }
+            
+            // Add Timeline in human-friendly format
+            if (state.timeline.startDate || state.timeline.endDate) {
+                newContent += `Timeline Start: ${state.timeline.startDate || 'not set'}\n`;
+                newContent += `Timeline End: ${state.timeline.endDate || 'not set'}\n`;
+                if (state.timeline.events && state.timeline.events.length > 0) {
+                    newContent += `\nTimeline Events:\n`;
+                    state.timeline.events.forEach(event => {
+                        const date = event.date || new Date().toISOString().split('T')[0];
+                        newContent += `- ${date}: ${event.note}\n`;
+                    });
+                }
+                newContent += '\n';
+            }
+            
             i++; skip(); continue;
         }
         
@@ -1114,12 +1195,14 @@ function updateMarkdownContent() {
                 newContent += `\nTime: ${d.totalTime || 0}\n` + (d.color ? `Color: ${d.color}\n` : '');
                 if (d.notes) newContent += `\n**Notes:**\n${d.notes}\n`;
                 if (d.oldNotes?.length) {
-                    // Check if notes are in kanban format (objects with status)
-                    if (d.oldNotes[0] && typeof d.oldNotes[0] === 'object' && 'status' in d.oldNotes[0]) {
-                        newContent += `\n**Old Notes:**\n${JSON.stringify(d.oldNotes)}\n`;
-                    } else {
-                        newContent += `\n**Old Notes:**\n${d.oldNotes.join('\n---\n')}\n`;
-                    }
+                    // Save notes in human-friendly format
+                    const formattedNotes = d.oldNotes.map(note => {
+                        if (typeof note === 'object' && note.text && note.status && note.timestamp) {
+                            return `- [${note.status}] ${note.text} (${note.timestamp})`;
+                        }
+                        return `- [todo] ${note}`;
+                    }).join('\n');
+                    newContent += `\n**Old Notes:**\n${formattedNotes}\n`;
                 }
                 newContent += '\n';
             }

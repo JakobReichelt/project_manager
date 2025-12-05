@@ -460,6 +460,7 @@ header h1:empty:before {
     font-weight: 400;
     color: var(--timer-text);
     text-align: center;
+    min-width: 7.5em;
 }
 
 .total-time-display {
