@@ -397,7 +397,7 @@ function addLevel2Section(title) {
 
 function addLevel3Section(title, parent) {
     const lines = state.fileContent.split('\n');
-    const idx = lines.findIndex(l => l === `## ${parent}`);
+    const idx = lines.findIndex(l => l.trim() === `## ${parent}`);
     if (idx !== -1) {
         let insertIdx = idx + 1;
         while (insertIdx < lines.length && (!lines[insertIdx].startsWith('## ') || lines[insertIdx].startsWith('### '))) insertIdx++;
@@ -486,28 +486,34 @@ function createSection(level, title, parent = null) {
     
     base.titleEl.onblur = () => {
         const newT = base.titleEl.textContent.trim();
-        if (newT && newT !== curTitle) { updateSectionTitle(base.section, curTitle, newT, level, parent); curTitle = newT; }
+        const currentParent = isL2 ? null : base.section.dataset.level2;
+        if (newT && newT !== curTitle) { updateSectionTitle(base.section, curTitle, newT, level, currentParent); curTitle = newT; }
         else if (!newT) base.titleEl.textContent = curTitle;
     };
     base.titleEl.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); base.titleEl.blur(); } };
     
-    base.section.querySelector('.delete-btn').onclick = (e) => { e.stopPropagation(); deleteSection(base.section, isL2 ? title : title, level, parent, e.clientX, e.clientY); };
+    base.section.querySelector('.delete-btn').onclick = (e) => { 
+        e.stopPropagation(); 
+        const currentParent = isL2 ? null : base.section.dataset.level2;
+        deleteSection(base.section, curTitle, level, currentParent, e.clientX, e.clientY); 
+    };
     base.section.querySelector('.move-up-btn').onclick = (e) => { e.stopPropagation(); moveSection(base.section, 'up', level); };
     base.section.querySelector('.move-down-btn').onclick = (e) => { e.stopPropagation(); moveSection(base.section, 'down', level); };
 
     base.colorStripe.onclick = (e) => {
         e.stopPropagation();
         const rect = base.colorStripe.getBoundingClientRect();
-        const colors = isL2 ? sectionColorPalette : generateColorVariants(state.projectData[parent]?.color || sectionColorPalette[0]);
-        const curColor = (isL2 ? state.projectData[title] : state.projectData[parent]?.[title])?.color || '';
+        const currentParent = isL2 ? null : base.section.dataset.level2;
+        const colors = isL2 ? sectionColorPalette : generateColorVariants(state.projectData[currentParent]?.color || sectionColorPalette[0]);
+        const curColor = (isL2 ? state.projectData[curTitle] : state.projectData[currentParent]?.[curTitle])?.color || '';
         showColorPicker(rect.right + 5, rect.top, colors, curColor, (c) => {
             if (isL2) { 
-                state.projectData[title].color = c; 
+                state.projectData[curTitle].color = c; 
                 base.colorStripe.style.backgroundColor = c;
                 updateSubsectionColors(base.section, c); 
             }
             else { 
-                state.projectData[parent][title].color = c; 
+                state.projectData[currentParent][curTitle].color = c; 
                 base.colorStripe.style.backgroundColor = c;
             }
             saveToFile();
@@ -518,7 +524,7 @@ function createSection(level, title, parent = null) {
         const btn = document.createElement('button');
         btn.className = 'add-subsection-btn';
         btn.textContent = '+ Add Subsection';
-        btn.onclick = (e) => { e.stopPropagation(); openSubsectionModal(title); };
+        btn.onclick = (e) => { e.stopPropagation(); openSubsectionModal(curTitle); };
         base.content.appendChild(btn);
     } else {
         base.content.append(createTimerSection(parent, title), createNotesSection(parent, title));
@@ -1000,14 +1006,37 @@ function renderNotesList(container, notes, l2, l3) {
 
 // ==================== SECTION MANAGEMENT ====================
 function updateSectionTitle(el, oldT, newT, level, parent) {
+    const lines = state.fileContent.split('\n');
     if (level === 2) {
+        const idx = lines.findIndex(l => l.startsWith('## ') && !l.startsWith('### ') && l.substring(3).trim() === oldT);
+        if (idx !== -1) lines[idx] = `## ${newT}`;
+
         state.projectData[newT] = state.projectData[oldT]; delete state.projectData[oldT];
         el.dataset.section = newT; el.querySelector('.section-time-display').dataset.section = newT;
         el.querySelectorAll('.section-level-3').forEach(s => { s.dataset.level2 = newT; s.querySelectorAll('[data-level2]').forEach(x => x.dataset.level2 = newT); });
     } else {
+        let parentIdx = -1;
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].startsWith('## ') && !lines[i].startsWith('### ') && lines[i].substring(3).trim() === parent) {
+                parentIdx = i;
+                break;
+            }
+        }
+        
+        if (parentIdx !== -1) {
+            for (let i = parentIdx + 1; i < lines.length; i++) {
+                if (lines[i].startsWith('## ') && !lines[i].startsWith('### ')) break;
+                if (lines[i].startsWith('### ') && lines[i].substring(4).trim() === oldT) {
+                    lines[i] = `### ${newT}`;
+                    break;
+                }
+            }
+        }
+
         state.projectData[parent][newT] = state.projectData[parent][oldT]; delete state.projectData[parent][oldT];
         el.dataset.level3 = newT; el.querySelectorAll('[data-level3]').forEach(x => x.dataset.level3 = newT);
     }
+    state.fileContent = lines.join('\n');
     saveToFile();
 }
 
@@ -1019,7 +1048,7 @@ async function deleteSection(el, title, level, parent, x, y) {
     const lines = state.fileContent.split('\n');
     if (level === 2) {
         // Remove the entire level 2 section and all its subsections
-        const startIdx = lines.findIndex(l => l === `## ${title}`);
+        const startIdx = lines.findIndex(l => l.trim() === `## ${title}`);
         if (startIdx !== -1) {
             let endIdx = startIdx + 1;
             while (endIdx < lines.length && !lines[endIdx].startsWith('## ')) endIdx++;
@@ -1028,7 +1057,7 @@ async function deleteSection(el, title, level, parent, x, y) {
         }
     } else {
         // Remove only the level 3 subsection
-        const startIdx = lines.findIndex(l => l === `### ${title}`);
+        const startIdx = lines.findIndex(l => l.trim() === `### ${title}`);
         if (startIdx !== -1) {
             let endIdx = startIdx + 1;
             while (endIdx < lines.length && !lines[endIdx].startsWith('#')) endIdx++;
