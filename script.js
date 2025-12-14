@@ -558,7 +558,7 @@ function createTimerSection(l2, l3) {
 
     const animate = (ts) => {
         if (!waveStart) waveStart = ts;
-        const prog = Math.min((ts - waveStart) / 900000, 1), y = 100 - (prog * 100), t = (ts - waveStart) / 1500, amp = 1.5 + (1 - prog) * 2;
+        const prog = Math.min((ts - waveStart) / 900000, 1), y = Math.max(100 - (prog * 95), 5), t = (ts - waveStart) / 1500, amp = 1.5 + (1 - prog) * 2;
         const pts = [0, 0.8, 1.6, 2.4, 3.2].map(o => y + Math.sin(t + o) * amp);
         wavePath.setAttribute('d', `M0,${pts[0]} C10,${pts[0]} 15,${pts[1]} 25,${pts[1]} S40,${pts[2]} 50,${pts[2]} S65,${pts[3]} 75,${pts[3]} S90,${pts[4]} 100,${pts[4]}`);
         if (running) waveAF = requestAnimationFrame(animate);
@@ -587,7 +587,7 @@ function createTimerSection(l2, l3) {
             totalDisp.textContent = `Total: ${formatTimeDisplay(state.projectData[l2][l3].totalTime)}`;
             updateTimeDisplays(); updateProjectTimeDisplay();
             if (sec % 60 === 0) renderTimelineWorkBlurs();
-            if (sec % 900 === 0) { playPingSound(); pause.click(); }
+            if (sec > 0 && sec % 900 === 0) { playPingSound(); pause.click(); }
         }, 1000);
         start.disabled = true; pause.disabled = false;
     };
